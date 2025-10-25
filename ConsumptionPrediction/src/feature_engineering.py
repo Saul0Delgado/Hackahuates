@@ -286,14 +286,27 @@ class FeatureEngineer:
         exclude_cols = [
             'Flight_ID', 'Product_Name', 'Date', 'Crew_Feedback',
             'Standard_Specification_Qty', 'Quantity_Returned', 'Quantity_Consumed',
-            'Origin', 'Product_ID', 'Flight_Type', 'Service_Type'  # Original categorical (now encoded)
+            'Origin', 'Product_ID', 'Flight_Type', 'Service_Type',  # Original categorical (now encoded)
+            'Consumption_Qty', 'waste_qty', 'overage_qty'  # Temporary columns used in feature engineering
         ]
 
         # Get all columns except excluded and target
         feature_cols = [col for col in df.columns if col not in exclude_cols and col != target_col]
 
         X = df[feature_cols].copy()
-        y = df[target_col].copy()
+
+        # If target column is missing (inference mode), return a placeholder series
+        if target_col in df.columns:
+            y = df[target_col].copy()
+        else:
+            # Create an empty/placeholder series with same index so downstream code
+            # that expects a Series won't fail. Callers that are in inference mode
+            # typically ignore `y`, so this is safe.
+            try:
+                y = pd.Series([0.0] * len(df), index=df.index)
+            except Exception:
+                # Fallback to an empty float series if construction fails
+                y = pd.Series(dtype=float)
 
         logger.info(f"Selected {len(feature_cols)} features")
         logger.info(f"Feature columns: {feature_cols[:10]}... ({len(feature_cols) - 10} more)")

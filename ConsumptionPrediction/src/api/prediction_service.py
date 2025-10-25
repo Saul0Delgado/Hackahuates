@@ -7,7 +7,7 @@ import pandas as pd
 from typing import Dict, Tuple, Optional, List
 from datetime import datetime
 
-from ..utils import logger, load_config, get_project_root
+from ..utils import logger, load_config, get_project_root, get_data_path
 from ..feature_engineering import FeatureEngineer
 from ..models import XGBoostConsumptionModel, RandomForestConsumptionModel, EnsembleConsumptionModel
 
@@ -29,6 +29,7 @@ class PredictionService:
         self.model = None
         self.feature_engineer = None
         self.all_models = {}
+        self.train_df = None  # Reference training data for aggregations
 
         # Load models
         self._load_models()
@@ -78,6 +79,17 @@ class PredictionService:
             self.feature_engineer = FeatureEngineer()
             self.feature_engineer.load_encoders()
 
+            # Load reference training data for aggregations
+            try:
+                train_path = get_data_path("data/processed/train.csv")
+                if train_path.exists():
+                    self.train_df = pd.read_csv(train_path)
+                    logger.info(f"Loaded reference training data: {len(self.train_df)} rows")
+                else:
+                    logger.warning("Training data not found, predictions may have feature mismatches")
+            except Exception as e:
+                logger.warning(f"Could not load training data: {e}")
+
             logger.info(f"Using {self.model_name} for predictions")
 
         except Exception as e:
@@ -112,13 +124,14 @@ class PredictionService:
                 'Origin': [origin],
                 'Unit_Cost': [unit_cost],
                 'Consumption_Qty': [passenger_count],  # Placeholder for feature engineering
+                'Standard_Specification_Qty': [passenger_count],  # Required for feature engineering
                 'Date': [flight_date if flight_date else datetime.now().strftime('%Y-%m-%d')],
                 'waste_qty': [0],  # Placeholder
                 'overage_qty': [0],  # Placeholder
             })
 
-            # Transform features
-            X, _ = self.feature_engineer.transform(input_data, fit=False)
+            # Transform features using training data for aggregations
+            X, _ = self.feature_engineer.transform(input_data, train_df=self.train_df, fit=False)
 
             # Get predictions with confidence intervals
             prediction, lower, upper = self.model.predict_with_confidence(X)
