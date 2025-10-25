@@ -1,0 +1,120 @@
+Flight_ID,Origin,Date,Flight_Type,Service_Type,Passenger_Count,Product_ID,Product_Name,Standard_Specification_Qty,Quantity_Returned,Quantity_Consumed,Unit_Cost,Crew_Feedback
+AA200,LHR,2025-10-04,short-haul,Pick & Pack,168,SNK001,Snack Box Economy,113,36,77,2.1,none
+BA197,ZRH,2025-10-04,short-haul,Retail,144,DRK023,Sparkling Water 330ml,62,6,56,0.45,none
+NH199,LHR,2025-10-04,short-haul,Pick & Pack,172,HTB110,Herbal Tea Bag,92,30,62,0.06,none
+BA204,NRT,2025-10-04,long-haul,Retail,346,CHO050,Chocolate Bar 50g,119,17,102,0.8,none
+LX207,MEX,2025-10-04,long-haul,Pick & Pack,326,DRK024,Still Water 500ml,270,79,191,0.5,none
+LX207,MEX,2025-10-04,long-haul,Pick & Pack,326,CRK075,Butter Cookies 75g,162,54,108,0.75,none
+LX207,MEX,2025-10-04,long-haul,Pick & Pack,326,CHO050,Chocolate Bar 50g,153,36,117,0.8,none
+LX207,MEX,2025-10-04,long-haul,Pick & Pack,326,BRD001,Bread Roll Pack,213,30,183,0.35,none
+BA208,MEX,2025-10-04,long-haul,Pick & Pack,281,JCE200,Juice 200ml,242,66,176,0.55,none
+BA204,NRT,2025-10-04,long-haul,Retail,346,COF200,Instant Coffee Stick,99,10,89,0.08,none
+BA208,MEX,2025-10-04,long-haul,Pick & Pack,281,HTB110,Herbal Tea Bag,149,51,98,0.06,none
+BA208,MEX,2025-10-04,long-haul,Pick & Pack,281,DRK024,Still Water 500ml,236,107,129,0.5,none
+NH199,LHR,2025-10-04,short-haul,Pick & Pack,172,SNK001,Snack Box Economy,109,26,83,2.1,drawer incomplete
+NH199,LHR,2025-10-04,short-haul,Pick & Pack,172,NUT030,Mixed Nuts 30g,91,27,64,0.65,none
+BA208,MEX,2025-10-04,long-haul,Pick & Pack,281,SNK001,Snack Box Economy,175,51,124,2.1,none
+BA204,NRT,2025-10-04,long-haul,Retail,346,JCE200,Juice 200ml,148,21,127,0.55,none
+BA208,MEX,2025-10-04,long-haul,Pick & Pack,281,NUT030,Mixed Nuts 30g,142,61,81,0.65,none
+QR203,NRT,2025-10-04,long-haul,Pick & Pack,275,CHO050,Chocolate Bar 50g,148,55,93,0.8,none
+BA204,NRT,2025-10-04,long-haul,Retail,346,SNK001,Snack Box Economy,84,11,73,2.1,none
+QR203,NRT,2025-10-04,long-haul,Pick & Pack,275,DRK023,Sparkling Water 330ml,211,35,176,0.45,drawer incomplete
+NH199,LHR,2025-10-04,short-haul,Pick & Pack,172,JCE200,Juice 200ml,150,49,101,0.55,none
+NH198,ZRH,2025-10-04,short-haul,Retail,152,NUT030,Mixed Nuts 30g,44,9,35,0.65,none
+NH198,ZRH,2025-10-04,short-haul,Retail,152,HTB110,Herbal Tea Bag,49,6,43,0.06,none
+NH198,ZRH,2025-10-04,short-haul,Retail,152,COF200,Instant Coffee Stick,42,3,39,0.08,none
+NH198,ZRH,2025-10-04,short-haul,Retail,152,CHO050,Chocolate Bar 50g,44,4,40,0.8,none
+NH198,ZRH,2025-10-04,short-haul,Retail,152,DRK024,Still Water 500ml,69,5,64,0.5,none
+BA197,ZRH,2025-10-04,short-haul,Retail,144,NUT030,Mixed Nuts 30g,49,9,40,0.65,none
+BA197,ZRH,2025-10-04,short-haul,Retail,144,JCE200,Juice 200ml,55,8,47,0.55,none
+BA197,ZRH,2025-10-04,short-haul,Retail,144,CHO050,Chocolate Bar 50g,43,3,40,0.8,none
+QR203,NRT,2025-10-04,long-haul,Pick & Pack,275,HTB110,Herbal Tea Bag,141,33,108,0.06,none
+QR203,NRT,2025-10-04,long-haul,Pick & Pack,275,DRK024,Still Water 500ml,207,66,141,0.5,none
+QR203,NRT,2025-10-04,long-haul,Pick & Pack,275,CRK075,Butter Cookies 75g,153,67,86,0.75,none
+AA217,DOH,2025-10-05,medium-haul,Pick & Pack,299,HTB110,Herbal Tea Bag,145,66,79,0.06,none
+AM219,MEX,2025-10-05,long-haul,Pick & Pack,294,CRK075,Butter Cookies 75g,142,27,115,0.75,none
+AA217,DOH,2025-10-05,medium-haul,Pick & Pack,299,BRD001,Bread Roll Pack,182,62,120,0.35,none
+AA217,DOH,2025-10-05,medium-haul,Pick & Pack,299,COF200,Instant Coffee Stick,163,33,130,0.08,none
+AA217,DOH,2025-10-05,medium-haul,Pick & Pack,299,DRK024,Still Water 500ml,258,79,179,0.5,none
+AA212,LHR,2025-10-05,short-haul,Retail,152,CHO050,Chocolate Bar 50g,41,3,38,0.8,none
+AA217,DOH,2025-10-05,medium-haul,Pick & Pack,299,JCE200,Juice 200ml,257,78,179,0.55,none
+BA218,DOH,2025-10-05,medium-haul,Pick & Pack,254,NUT030,Mixed Nuts 30g,131,46,85,0.65,none
+BA218,DOH,2025-10-05,medium-haul,Pick & Pack,254,COF200,Instant Coffee Stick,145,24,121,0.08,none
+BA218,DOH,2025-10-05,medium-haul,Pick & Pack,254,CRK075,Butter Cookies 75g,144,64,80,0.75,low demand
+BA218,DOH,2025-10-05,medium-haul,Pick & Pack,254,DRK024,Still Water 500ml,184,85,99,0.5,none
+BA218,DOH,2025-10-05,medium-haul,Pick & Pack,254,HTB110,Herbal Tea Bag,127,18,109,0.06,none
+BA218,DOH,2025-10-05,medium-haul,Pick & Pack,254,JCE200,Juice 200ml,214,72,142,0.55,none
+BA214,JFK,2025-10-05,long-haul,Retail,374,COF200,Instant Coffee Stick,123,13,110,0.08,drawer incomplete
+BA214,JFK,2025-10-05,long-haul,Retail,374,DRK023,Sparkling Water 330ml,161,25,136,0.45,none
+AA217,DOH,2025-10-05,medium-haul,Pick & Pack,299,SNK001,Snack Box Economy,196,75,121,2.1,none
+BA214,JFK,2025-10-05,long-haul,Retail,374,DRK024,Still Water 500ml,149,27,122,0.5,none
+LX213,JFK,2025-10-05,long-haul,Pick & Pack,311,DRK024,Still Water 500ml,253,48,205,0.5,none
+BA214,JFK,2025-10-05,long-haul,Retail,374,JCE200,Juice 200ml,148,17,131,0.55,none
+BA214,JFK,2025-10-05,long-haul,Retail,374,CRK075,Butter Cookies 75g,106,23,83,0.75,none
+LX213,JFK,2025-10-05,long-haul,Pick & Pack,311,DRK023,Sparkling Water 330ml,272,49,223,0.45,none
+BA214,JFK,2025-10-05,long-haul,Retail,374,SNK001,Snack Box Economy,88,22,66,2.1,none
+LX213,JFK,2025-10-05,long-haul,Pick & Pack,311,HTB110,Herbal Tea Bag,167,57,110,0.06,none
+LX213,JFK,2025-10-05,long-haul,Pick & Pack,311,JCE200,Juice 200ml,258,97,161,0.55,none
+LX213,JFK,2025-10-05,long-haul,Pick & Pack,311,SNK001,Snack Box Economy,188,67,121,2.1,none
+AA212,LHR,2025-10-05,short-haul,Retail,152,BRD001,Bread Roll Pack,40,9,31,0.35,none
+AA217,DOH,2025-10-05,medium-haul,Pick & Pack,299,CHO050,Chocolate Bar 50g,136,43,93,0.8,none
+NH211,LHR,2025-10-05,short-haul,Retail,160,JCE200,Juice 200ml,66,14,52,0.55,none
+AA212,LHR,2025-10-05,short-haul,Retail,152,HTB110,Herbal Tea Bag,49,3,46,0.06,none
+AA212,LHR,2025-10-05,short-haul,Retail,152,JCE200,Juice 200ml,58,14,44,0.55,none
+NH211,LHR,2025-10-05,short-haul,Retail,160,BRD001,Bread Roll Pack,41,11,30,0.35,none
+NH211,LHR,2025-10-05,short-haul,Retail,160,CHO050,Chocolate Bar 50g,49,11,38,0.8,none
+NH211,LHR,2025-10-05,short-haul,Retail,160,CRK075,Butter Cookies 75g,44,9,35,0.75,none
+BA214,JFK,2025-10-05,long-haul,Retail,374,HTB110,Herbal Tea Bag,129,12,117,0.06,none
+NH211,LHR,2025-10-05,short-haul,Retail,160,SNK001,Snack Box Economy,45,4,41,2.1,none
+AA212,LHR,2025-10-05,short-haul,Retail,152,DRK024,Still Water 500ml,69,14,55,0.5,none
+AM219,MEX,2025-10-05,long-haul,Pick & Pack,294,COF200,Instant Coffee Stick,132,25,107,0.08,none
+LX209,ZRH,2025-10-05,short-haul,Pick & Pack,123,JCE200,Juice 200ml,93,17,76,0.55,none
+AM219,MEX,2025-10-05,long-haul,Pick & Pack,294,DRK024,Still Water 500ml,232,74,158,0.5,none
+AM216,NRT,2025-10-05,long-haul,Retail,259,NUT030,Mixed Nuts 30g,85,9,76,0.65,none
+AM219,MEX,2025-10-05,long-haul,Pick & Pack,294,JCE200,Juice 200ml,267,102,165,0.55,none
+NH220,MEX,2025-10-05,long-haul,Retail,304,BRD001,Bread Roll Pack,82,15,67,0.35,none
+NH220,MEX,2025-10-05,long-haul,Retail,304,CHO050,Chocolate Bar 50g,90,5,85,0.8,ran out early
+NH220,MEX,2025-10-05,long-haul,Retail,304,COF200,Instant Coffee Stick,85,18,67,0.08,none
+NH220,MEX,2025-10-05,long-haul,Retail,304,DRK023,Sparkling Water 330ml,122,22,100,0.45,none
+NH220,MEX,2025-10-05,long-haul,Retail,304,DRK024,Still Water 500ml,113,26,87,0.5,none
+AM219,MEX,2025-10-05,long-haul,Pick & Pack,294,NUT030,Mixed Nuts 30g,138,33,105,0.65,none
+NH220,MEX,2025-10-05,long-haul,Retail,304,JCE200,Juice 200ml,117,21,96,0.55,none
+LX209,ZRH,2025-10-05,short-haul,Pick & Pack,123,SNK001,Snack Box Economy,74,11,63,2.1,drawer incomplete
+AM216,NRT,2025-10-05,long-haul,Retail,259,CHO050,Chocolate Bar 50g,75,4,71,0.8,none
+AM216,NRT,2025-10-05,long-haul,Retail,259,COF200,Instant Coffee Stick,72,12,60,0.08,none
+AM216,NRT,2025-10-05,long-haul,Retail,259,HTB110,Herbal Tea Bag,74,8,66,0.06,none
+AM216,NRT,2025-10-05,long-haul,Retail,259,BRD001,Bread Roll Pack,72,14,58,0.35,none
+LX213,JFK,2025-10-05,long-haul,Pick & Pack,311,CRK075,Butter Cookies 75g,155,61,94,0.75,none
+NH220,MEX,2025-10-05,long-haul,Retail,304,HTB110,Herbal Tea Bag,102,20,82,0.06,none
+AM216,NRT,2025-10-05,long-haul,Retail,259,SNK001,Snack Box Economy,70,6,64,2.1,none
+AM216,NRT,2025-10-05,long-haul,Retail,259,JCE200,Juice 200ml,101,9,92,0.55,none
+QR215,NRT,2025-10-05,long-haul,Retail,325,COF200,Instant Coffee Stick,103,10,93,0.08,none
+AA210,ZRH,2025-10-05,short-haul,Pick & Pack,145,DRK023,Sparkling Water 330ml,105,29,76,0.45,none
+LX209,ZRH,2025-10-05,short-haul,Pick & Pack,123,COF200,Instant Coffee Stick,59,17,42,0.08,none
+QR215,NRT,2025-10-05,long-haul,Retail,325,DRK023,Sparkling Water 330ml,139,11,128,0.45,none
+QR215,NRT,2025-10-05,long-haul,Retail,325,DRK024,Still Water 500ml,129,11,118,0.5,none
+QR215,NRT,2025-10-05,long-haul,Retail,325,HTB110,Herbal Tea Bag,106,7,99,0.06,none
+QR215,NRT,2025-10-05,long-haul,Retail,325,JCE200,Juice 200ml,123,21,102,0.55,none
+AA210,ZRH,2025-10-05,short-haul,Pick & Pack,145,CHO050,Chocolate Bar 50g,81,27,54,0.8,none
+AA210,ZRH,2025-10-05,short-haul,Pick & Pack,145,CRK075,Butter Cookies 75g,71,23,48,0.75,drawer incomplete
+QR215,NRT,2025-10-05,long-haul,Retail,325,CRK075,Butter Cookies 75g,109,14,95,0.75,none
+QR215,NRT,2025-10-05,long-haul,Retail,325,BRD001,Bread Roll Pack,83,13,70,0.35,none
+AA210,ZRH,2025-10-05,short-haul,Pick & Pack,145,NUT030,Mixed Nuts 30g,79,24,55,0.65,none
+AA210,ZRH,2025-10-05,short-haul,Pick & Pack,145,SNK001,Snack Box Economy,97,33,64,2.1,none
+LX209,ZRH,2025-10-05,short-haul,Pick & Pack,123,BRD001,Bread Roll Pack,72,35,37,0.35,none
+LX209,ZRH,2025-10-05,short-haul,Pick & Pack,123,CHO050,Chocolate Bar 50g,66,18,48,0.8,none
+AM219,MEX,2025-10-05,long-haul,Pick & Pack,294,HTB110,Herbal Tea Bag,141,57,84,0.06,none
+LX209,ZRH,2025-10-05,short-haul,Pick & Pack,123,DRK024,Still Water 500ml,110,25,85,0.5,drawer incomplete
+AA210,ZRH,2025-10-05,short-haul,Pick & Pack,145,HTB110,Herbal Tea Bag,79,29,50,0.06,drawer incomplete
+QR230,DOH,2025-10-06,medium-haul,Pick & Pack,244,NUT030,Mixed Nuts 30g,125,50,75,0.65,none
+QR230,DOH,2025-10-06,medium-haul,Pick & Pack,244,JCE200,Juice 200ml,177,65,112,0.55,none
+QR230,DOH,2025-10-06,medium-haul,Pick & Pack,244,DRK024,Still Water 500ml,182,58,124,0.5,none
+QR230,DOH,2025-10-06,medium-haul,Pick & Pack,244,DRK023,Sparkling Water 330ml,215,63,152,0.45,drawer incomplete
+QR230,DOH,2025-10-06,medium-haul,Pick & Pack,244,CRK075,Butter Cookies 75g,121,42,79,0.75,none
+QR229,DOH,2025-10-06,medium-haul,Retail,317,NUT030,Mixed Nuts 30g,93,9,84,0.65,none
+QR229,DOH,2025-10-06,medium-haul,Retail,317,SNK001,Snack Box Economy,83,15,68,2.1,none
+QR229,DOH,2025-10-06,medium-haul,Retail,317,HTB110,Herbal Tea Bag,96,11,85,0.06,none
+QR229,DOH,2025-10-06,medium-haul,Retail,317,DRK024,Still Water 500ml,142,9,133,0.5,none
+QR229,DOH,2025-10-06,medium-haul,Retail,317,CRK075,Butter Cookies 75g,105,18,87,0.75,drawer incomplete
+QR229,DOH,2025-10-06,medium-haul,Retail,317,COF200,Instant Coffee Stick,102,21,81,0.08,none
+AA225,JFK,2025-10-06,long-haul,Pick & Pack,261,BRD001,Bread Roll Pack,180,37,143,0.35,none
