@@ -1,71 +1,169 @@
-# SmartCart AI - Sistema de Predicción de Comidas para Catering Aéreo
+# SmartCart AI - HackMTY 2025
 
-**Hackathon MTY 2025 - Team Hackahuates**
+**Team Hackahuates**
 
-Sistema de Machine Learning para optimizar cantidades de comidas en vuelos, reduciendo desperdicio del 95% y ahorrando costos operacionales.
+Sistema de Machine Learning para optimizar cantidades de comidas en vuelos comerciales, reduciendo desperdicio y costos operacionales.
 
 ---
 
-## 🚀 **EMPIEZA AQUÍ**
+## Resultados
 
-### 👉 **[LEE LA GUÍA DE INICIO COMPLETA](START_HERE.md)** 👈
+**Modelo XGBoost (producción)**
+- R²: 0.9898 (98.98% precisión)
+- MAE: 3.15 unidades
+- MAPE: 3.04%
+- Tasa de desperdicio: 1.18% (baseline 24%)
+- Reducción de desperdicio: 95%
 
-**Resumen rápido:**
+**Impacto económico proyectado**
+- Ahorro por vuelo: $107.25
+- Ahorro anual (500 vuelos, 10 productos): $536,250
 
-Necesitas **DOS terminales abiertas** simultáneamente:
+---
 
-**Terminal 1 - Backend:**
+## Inicio Rápido
+
+### Prerequisitos
+- Python 3.9+
+- Node.js 16+
+- Git
+
+### Backend (Terminal 1)
+
 ```bash
 cd ConsumptionPrediction
 python -m venv venv
-venv\Scripts\activate  # Windows | source venv/bin/activate en Mac/Linux
+venv\Scripts\activate  # Windows
+# source venv/bin/activate  # Mac/Linux
 pip install -r requirements.txt
 python run_api.py
 ```
-✅ Backend en: http://localhost:8000
 
-**Terminal 2 - Frontend:**
+API disponible en: http://localhost:8000
+Documentación: http://localhost:8000/docs
+
+### Frontend (Terminal 2)
+
 ```bash
 cd Frontend
 npm install
 npm run dev
 ```
-✅ Frontend en: http://localhost:5173
+
+Interfaz disponible en: http://localhost:5173
 
 ---
 
-## ⚠️ Errores Comunes
+## Módulos del Proyecto
 
-| Error | Solución |
-|-------|----------|
-| "Failed to fetch" | El backend no está corriendo → Inicia el backend en Terminal 1 |
-| Badge rojo "🔴 API Desconectada" | Verifica que http://localhost:8000 esté activo |
-| Estilos no se ven | Reinicia el frontend (Ctrl+C y `npm run dev`) |
+### 1. ConsumptionPrediction (Backend ML)
 
-**[Ver guía completa de solución de problemas](START_HERE.md#-solución-de-problemas)**
+**Stack tecnológico**
+- Python 3.9, FastAPI, Uvicorn
+- XGBoost, scikit-learn, pandas
+- Optuna (optimización hiperparámetros)
+
+**Funcionalidad**
+- API REST para predicciones individuales y batch
+- Intervalos de confianza (95%)
+- Métricas de negocio en tiempo real
+- Feature importance y explicabilidad
+
+**Endpoints principales**
+- `POST /api/v1/predict` - Predicción individual
+- `POST /api/v1/predict/batch` - Predicción múltiple
+- `GET /api/v1/metrics` - Métricas del modelo
+- `GET /health` - Estado del servicio
+
+### 2. Frontend (React + TypeScript)
+
+**Stack tecnológico**
+- React 19, TypeScript, Vite
+- Tailwind CSS, Shadcn/ui
+- Lucide Icons
+
+**Funcionalidad**
+- Formulario de predicción con validación
+- Visualización de métricas del modelo
+- Indicador de estado de conexión API
+- Diseño responsive
+
+### 3. ExpiringDate (OCR para fechas)
+
+**Stack tecnológico**
+- Flask, Tesseract OCR
+- OpenCV, PIL, dateparser
+
+**Funcionalidad**
+- Extracción de fechas de caducidad desde imágenes
+- Procesamiento de imágenes base64
+- API REST para integración
+
+```bash
+cd ExpiringDate
+pip install -r requirements.txt
+python app.py
+```
+
+API disponible en: http://localhost:5001
 
 ---
 
-## 📊 Resultados
+## Entrenamiento del Modelo
 
-- **Precisión**: 98.98% (R²)
-- **Error**: 3.04% (MAPE)
-- **Reducción de Desperdicio**: 95% vs baseline
-- **Ahorro Anual**: $536,250 (10 productos)
+### Entrenar desde cero
 
-## 📁 Estructura
+```bash
+cd ConsumptionPrediction
+python scripts/train_optimized.py
+```
+
+Genera:
+- Modelos entrenados en `data/models/`
+- Métricas en `TRAINING_RESULTS.md`
+- Gráficas de evaluación
+
+### Optimización de hiperparámetros
+
+```bash
+python scripts/optimize_hyperparameters.py
+```
+
+Usa Optuna para encontrar mejores configuraciones (100 trials por defecto).
+
+---
+
+## Estructura del Proyecto
 
 ```
 Hackahuates/
-├── ConsumptionPrediction/   # Backend ML + API
-├── Frontend/                # React + TypeScript UI
-├── Docs/                    # Documentación
-└── INTEGRATION_SUMMARY.md   # Guía completa
+├── ConsumptionPrediction/    # Backend ML + API
+│   ├── src/
+│   │   ├── api/              # FastAPI endpoints
+│   │   ├── models/           # Modelos ML
+│   │   └── data_loader.py    # Procesamiento datos
+│   ├── data/
+│   │   ├── models/           # Modelos entrenados (.pkl)
+│   │   ├── processed/        # train/val/test splits
+│   │   └── raw/              # Dataset original
+│   ├── scripts/              # Training scripts
+│   └── requirements.txt
+│
+├── Frontend/                 # React UI
+│   ├── src/
+│   │   ├── components/       # Componentes React
+│   │   ├── services/         # API client
+│   │   └── types/            # TypeScript types
+│   └── package.json
+│
+├── ExpiringDate/             # OCR module
+│   ├── app.py               # Flask API
+│   ├── extract_date.py      # Lógica OCR
+│   └── requirements.txt
+│
+└── Docs/                     # Documentación hackathon
+    ├── context.md
+    └── HackMTY2025_ChallengeDimensions/
 ```
 
-## 📚 Documentación
-
-- [Resumen de Integración](INTEGRATION_SUMMARY.md)
-- [Backend README](ConsumptionPrediction/README.md)
-- [Frontend Instructions](Frontend/INSTRUCTIONS.md)
-- [API Documentation](ConsumptionPrediction/API_DOCUMENTATION.md)
+---
