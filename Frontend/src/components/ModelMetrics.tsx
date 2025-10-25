@@ -24,17 +24,33 @@ export function ModelMetricsDashboard() {
       apiService.getModelMetrics(),
       apiService.getFeatureImportance(10),
     ])
+    
     setMetrics(metricsData)
     
-    // --- PASO CLAVE DE DEPURACIÓN ---
-    // ...
     console.log("Datos recibidos para features:", featuresData) 
 
-    // Guardamos directamente el array de features en el estado
-    setFeatures(featuresData);
+    // --- CORRECCIÓN DE TYPESCRIPT ---
+
+    // 1. Extraemos 'top_features'
+    //    Usamos '(featuresData as any)' para decirle a TypeScript que confíe en nosotros.
+    //    Usamos '?.' (optional chaining) y '|| {}' para prevenir errores 
+    //    si 'top_features' no viniera.
+    const featuresObject = (featuresData as any)?.top_features || {};
+
+    // 2. Convertimos ese OBJETO en un ARRAY
+    const featuresArray = Object.entries(featuresObject).map(
+      ([featureName, importanceValue]) => ({
+        feature: featureName,
+        importance: importanceValue as number
+      })
+    );
+
+    // 3. Guardamos el ARRAY en el estado
+    setFeatures(featuresArray);
+    
+    // --- FIN DE LA CORRECCIÓN ---
 
     setError(null)
-    // ...
   } catch (err) {
     setError(err instanceof Error ? err.message : "Error al cargar métricas")
   } finally {

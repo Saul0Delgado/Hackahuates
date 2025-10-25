@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react"
 import { PredictionForm } from "./components/PredictionForm"
 import { ModelMetricsDashboard } from "./components/ModelMetrics"
+import { ProductsManager } from "./components/ProductsManager"
 import { Button } from "./components/ui/button"
 import { Badge } from "./components/ui/badge"
 import { Card, CardContent } from "./components/ui/card"
 import { apiService } from "./services/api"
-import { Activity, BarChart3, RefreshCw, AlertCircle } from "lucide-react"
+import { Activity, BarChart3, RefreshCw, AlertCircle, Package } from "lucide-react"
 
-type View = "prediction" | "metrics"
+type View = "prediction" | "metrics" | "products"
 
 export default function App() {
   const [view, setView] = useState<View>("prediction")
@@ -81,6 +82,16 @@ export default function App() {
                 <BarChart3 className="h-4 w-4" aria-hidden="true" />
                 <span>Métricas</span>
               </Button>
+              <Button
+                variant={view === "products" ? "default" : "outline"}
+                onClick={() => setView("products")}
+                className="gap-2"
+                aria-pressed={view === "products"}
+                aria-label="Ver gestión de productos"
+              >
+                <Package className="h-4 w-4" aria-hidden="true" />
+                <span>Productos</span>
+              </Button>
             </nav>
           </div>
         </div>
@@ -121,7 +132,13 @@ export default function App() {
         )}
 
         <div className="animate-in fade-in duration-500">
-          {view === "prediction" ? <PredictionForm /> : <ModelMetricsDashboard />}
+          {view === "prediction" ? (
+            <PredictionForm />
+          ) : view === "metrics" ? (
+            <ModelMetricsDashboard />
+          ) : (
+            <ProductsManager />
+          )}
         </div>
       </main>
 
