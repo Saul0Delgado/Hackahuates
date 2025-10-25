@@ -619,4 +619,300 @@ DRW_003    Business     Snack            15           7                  SNK02, 
 
 ---
 
+## 🎤 INFORMACIÓN OPERACIONAL DE ENTREVISTAS CON GATEGROUP
+
+**Fuentes**: Transcripts de entrevistas con funcionarios de GateGroup (ResumenTranscriptCitado.md, PreguntasGateGroup.md)
+
+### Alcance del Reto
+
+**Productos en scope**:
+- Snacks y bebidas **NO preparadas** (productos empaquetados listos para servir)
+- NO incluye comida caliente ni preparaciones (make and pack) - eso es otro proceso
+- Productos reales disponibles para pruebas y medición de tiempos
+
+**Objetivo principal**:
+> "Me da igual el algoritmo, me da igual la solución que me des, siempre y cuando cumpla con el propósito de mejorar el proceso." (19:06)
+
+**Meta de precisión**:
+- Error máximo ≤2% en predicciones de series temporales
+- Actualmente no han tenido faltantes porque aerolíneas mandan con buffer, pero se busca optimizar
+
+**Objetivo de eficiencia**:
+> "Si me reduces 3 segundos por bandeja por vuelo, al final del año puedes estar hablando de días." (18:30)
+- Reducir tiempo de armado sin afectar calidad
+- Vuelo completo (~7 carritos): **~4 horas** de armado actualmente
+
+---
+
+### Proceso Operacional Real
+
+#### 1. Ciclo de Vida de un Vuelo
+
+**Pre-vuelo (armado)**:
+1. Cliente (aerolínea) hace pedido basado en manifiesto de pasajeros
+2. Proveedor suministra productos (ej: Aeromexico vía Mester)
+3. GateGroup arma carritos en planta (10 minutos del aeropuerto)
+4. Productos se organizan en trolleys/carritos (largos y medios)
+5. Tiempo de preparación: **~4 horas** para vuelo completo
+6. Transporte y carga al avión: **~3 horas** antes de salida
+
+**Post-vuelo (recepción y reuso)**:
+1. Vuelo aterriza, carritos regresan a planta
+2. **Conteo manual** de inventario restante
+3. Check de caducidades por lote
+4. Match con venta a bordo (si aplica) y distribución realizada
+5. **Productos cerrados/buenos** → se reutilizan en siguiente vuelo
+6. **Productos abiertos/medios** → depende de contrato con aerolínea:
+   - Algunas aerolíneas aceptan botellas a la mitad si suman el volumen requerido
+   - Otras exigen solo botellas cerradas (botellas abiertas se desechan)
+   - Ejemplos: vino tinto con corcho aunque no esté bebido → se desecha
+7. Refill hasta alcanzar **mínimos establecidos** por SKU
+8. Vuelo listo para siguiente ciclo
+
+#### 2. Gestión de Inventarios
+
+**Control de stock**:
+- Cada producto tiene un **mínimo establecido** por carrito/vuelo
+- Ejemplo: "Tengo que tener 3 Coca-Cola zero, 3 Coca-Cola normal, 2 Sprites..."
+- Refill basado en: `cantidad_faltante = mínimo - cantidad_actual`
+- Stock general basado en **históricos de consumo** e inventarios
+
+**Sistema de lotes (FIFO)**:
+> "Lo vamos poniendo por lotes, cuando se acabe el lote ponemos el siguiente." (07:20)
+- No se mezclan lotes de fechas muy diferentes (máximo 2-3 lotes volando)
+- Control de caducidad **por lote** (no producto a producto)
+- Cada lote tiene fecha de caducidad uniforme
+- Sugerencia del cliente: automatizar lectura de fechas con IA/OCR
+
+**Caducidades**:
+- Check **5-7 días antes** de expiración
+- Productos próximos a vencer se desechan antes de ese límite
+- Post-vuelo se revisan caducidades en el reconteo
+
+**Tecnología actual**:
+- **Tablets (iPad/Android)** con app desarrollada in-house (80% de casos)
+- App conectada a **ERP desarrollado internamente**
+- Almacenamiento en **la nube** (data centers propios)
+- En algunos casos de venta a bordo: duplicación de registro en sistema de aerolínea + sistema propio (consume tiempo extra)
+
+---
+
+### Variables Clave de Negocio
+
+**Drivers de consumo** (según experiencia operacional):
+> "En su experiencia cuáles son las variables que impactan en el consumo... cantidad de personas y las horas de vuelo que tienen." (14:30)
+
+1. **Cantidad de pasajeros**: Driver principal
+2. **Horas de vuelo**:
+   - Vuelos cortos (~2 horas): mayoría de vuelos
+   - Vuelos largos: dobles servicios (4-12 carritos dependiendo de duración)
+3. **Tipo de vuelo**: Determinado por contrato con aerolínea
+4. **Históricos**: Datos de pasajeros históricos (de aerolíneas o empresas terceras como OAG)
+
+**Fuentes de datos de pasajeros**:
+> "Nos dan las aerolíneas o nos las dan empresas terceros como OAC, pero nos dan datos de cuántos pasajeros hubo en históricos." (09:49)
+- Aerolíneas proveen manifiestos y datos históricos
+- Empresas terceras (OAG, etc.)
+- Histórico propio de GateGroup
+
+---
+
+### Configuración de Carritos (Trolleys)
+
+**Tipos de carritos**:
+- **Largos** (full size)
+- **Medios** (half size - mitad de un largo)
+- Total para un vuelo típico: **~7 carritos** (pueden ser ~12 en vuelos grandes)
+
+**Capacidad y organización**:
+- Productos pequeños (latas, snacks): caben en bandejas múltiples
+- Productos grandes (tetrabrix de jugo): ocupan más espacio, menos unidades por bandeja
+- Configuración varía según tipo de producto (bebidas vs. snacks vs. suministros)
+
+**Contenidos**:
+- Bebidas (refrescos, agua, jugos)
+- Snacks (galletas, botanas, chips)
+- Suministros: cubrebocas, guantes, bolsas de basura
+- Documentación del vuelo
+- Cubiertos, vasos, servilletas
+
+**Estaciones de armado**:
+- Personas dedicadas a **líquidos**
+- Personas dedicadas a **botanas y galletas**
+- Personas dedicadas a **misceláneos**
+- Aproximadamente **3 estaciones** de armado simultáneas
+
+---
+
+### Restricciones y Reglas por Contrato
+
+**Variabilidad por aerolínea**:
+> "Son un montón de variables que se tiene que saber de memoria el empacador y que lo suyo es que haya una ayuda." (16:50)
+
+Cada contrato tiene **cláusulas específicas**:
+
+1. **Botellas abiertas**:
+   - Aerolínea A: Acepta medias botellas si suman volumen total (ej: 2 medias = 1 litro)
+   - Aerolínea B: Solo acepta botellas cerradas nuevas, abiertas se desechan
+   - Criterios de aceptación: si está >50% llena vs. <50%
+
+2. **Productos abiertos**:
+   - Algunos productos abiertos → desechar independientemente (ej: vino con corcho)
+   - Refrescos/bebidas: depende del contrato
+
+3. **Volúmenes mínimos**:
+   - Contratos especifican volumen total requerido por tipo de bebida/producto
+   - GateGroup debe cumplir sin importar cómo se distribuya (botellas completas vs. medias)
+
+**Problema operacional**:
+- Empacadores deben **memorizar** reglas de cada contrato/aerolínea
+- Proceso de verificación toma **~30 segundos** actualmente
+- Oportunidad: Reducir a **~10 segundos** con asistencia digital (vinculación automática vuelo → contrato → reglas)
+
+---
+
+### Desafíos de Productividad
+
+**Factor humano**:
+> "Por eso es que se aburren o se pueden distraer porque tú piensas que si estás haciendo ocho horas esto..." (12:25)
+
+- Trabajo repetitivo de **8 horas** armando carritos
+- Riesgo de distracción y error por monotonía
+- Necesidad de mantener atención en múltiples variables
+
+**KPIs existentes (confidenciales)**:
+> "Tenemos ya ciertos KPIs para hacer eso. Esos no se los vamos a pasar." (13:00)
+- Existen **promedios de tiempo** por paso del proceso (inicio a fin)
+- Métrica interna: "puntos de historia" por vuelo
+- Objetivo: "Hacer la misma historia con menos puntos" (reducir tiempo)
+
+**Oportunidades de mejora**:
+1. Reducir tiempo de armado por bandeja/carrito
+2. Minimizar errores de empacado
+3. Ayudar a verificar reglas de contrato más rápido
+4. Optimizar decisiones de reuso de productos (botellas medias, etc.)
+5. Automatizar chequeo de caducidades
+
+---
+
+### Predicción y Optimización de Compras
+
+**Caso de uso: Venta a bordo**:
+> "Me interesa saber cómo comprar mejor porque a lo mejor no tengo que comprar y poner siempre tres Coca-Colas, si ya sé que no se van a consumir." (09:13)
+
+**Escenario**:
+- Stock pertenece a GateGroup (no siempre es de la aerolínea)
+- Optimizar compras basado en consumo real histórico
+- Ejemplo: Si siempre sobran Coca-Colas normales y faltan Coca-Cola Zero:
+  - Cambiar configuración de 3-2 a 2-4
+  - Coordinar con cliente o ajustar plan propio
+  - Evitar compras innecesarias hasta agotar stock
+
+**Limitación actual**:
+- En muchos casos, productos ya están pagados por aerolínea
+- Enfoque en **tiempo/eficiencia** más que en reducción de desperdicio económico
+- Pero en venta a bordo, optimización de compras sí impacta margen de GateGroup
+
+---
+
+### Contexto Técnico y de Implementación
+
+**Preferencias de solución**:
+1. **Foco en proceso, no en tecnología**:
+   > "Céntrate más en mejorar el proceso independientemente del fondo." (20:18)
+
+2. **Costo razonable**:
+   - No se esperan inversiones millonarias por carrito
+   - Pero costo no es el factor principal si hay mejora significativa
+
+3. **Digitalización pragmática**:
+   > "No todos los procesos los tendremos que digitalizar al 100, siempre y cuando seamos eficientes." (21:04)
+   - Bienvenida combinación de soluciones tecnológicas + no tecnológicas
+   - Flexibilidad para soluciones híbridas
+
+4. **Implementación por GateGroup**:
+   - Aerolínea NO está involucrada en implementación
+   - GateGroup ejecuta la solución internamente
+   - Aerolínea solo paga por el servicio
+
+**Infraestructura existente**:
+- App in-house ya desarrollada (tablets)
+- ERP in-house
+- Conectividad en tierra (NO hay conectividad arriba del avión durante vuelo)
+- Almacenamiento en nube
+- Posibilidad de integración con sistemas existentes
+
+---
+
+### Datos Disponibles para Modelado
+
+**Datos históricos confirmados**:
+1. **Manifiestos de pasajeros** por vuelo (de aerolíneas)
+2. **Consumos históricos** (registrados en app/ERP propio)
+3. **Inventarios pre y post vuelo** (conteos manuales)
+4. **Venta a bordo** cuando aplique (match entre inventario y ventas)
+5. **Datos de terceros**: OAG u otras empresas proveen históricos de pasajeros
+6. **Históricos de merma/desperdicio** por producto y razón
+
+**Granularidad**:
+- Por vuelo (Flight_ID)
+- Por SKU (producto específico)
+- Por lote (fecha de caducidad)
+- Por ruta (histórico por aeropuerto origen/destino)
+- Por temporada/época del año
+
+---
+
+### Oportunidades de ML/IA Identificadas en Entrevistas
+
+1. **Predicción de consumo optimizada**:
+   - Basado en pasajeros + horas de vuelo + históricos
+   - Reducir sobrecarga innecesaria
+   - Objetivo: ≤2% error
+
+2. **Automatización de lectura de caducidades**:
+   > "Te puedes poner a hacer que una IA te ponga a revisar lata a lata todos los dígitos de la fecha de caducidad." (11:04)
+   - OCR/Computer Vision para leer fechas en lotes
+   - Evitar revisión manual lata por lata
+
+3. **Asistencia inteligente para reglas de contrato**:
+   - Vincular vuelo → contrato → cláusulas automáticamente
+   - Mostrar al empacador qué productos se pueden reusar
+   - Reducir tiempo de verificación de 30s a 10s
+
+4. **Optimización de refill**:
+   - Basado en consumo real histórico por ruta/vuelo
+   - Ajustar mínimos dinámicamente
+
+5. **Sincronización de sistemas**:
+   - Evitar doble registro (sistema propio + sistema aerolínea)
+   - Transferencia automática de datos entre sistemas
+
+6. **Identificación/marcado de productos**:
+   - Posibilidad de agregar marcas/tags a productos para mejor identificación
+   - Computer vision para tracking de lotes
+
+---
+
+### Métricas de Éxito del Proyecto
+
+**Cuantitativas**:
+1. **Reducción de tiempo**: Segundos ahorrados por bandeja × bandejas por vuelo × vuelos por año = días ahorrados
+2. **Precisión de predicción**: Error ≤2% en forecasting de consumo
+3. **Reducción de errores**: Menos productos incorrectos o faltantes
+4. **Optimización de compras**: Reducción de stock innecesario (cuando aplique)
+
+**Cualitativas**:
+1. **Mejora en proceso**: Simplificación, menos pasos manuales
+2. **Reducción de carga cognitiva**: Menos reglas que memorizar
+3. **Satisfacción del trabajador**: Menos monotonía/distracción
+4. **Aplicabilidad**: Que la solución sea práctica de implementar
+
+**Prioridad**:
+> "Si me reduces 3 segundos por bandeja por vuelo, al final del año puedes estar hablando de días."
+- **Tiempo es el KPI principal** (más que costo de desperdicio en este caso)
+- Impacto acumulativo a lo largo del año es significativo
+
+---
+
 *Documento preparado para alimentar modelos de ML con contexto operacional integrado.*
