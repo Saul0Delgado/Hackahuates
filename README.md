@@ -1,2 +1,0 @@
-# Hackahuates
-Hackathon MTY team
