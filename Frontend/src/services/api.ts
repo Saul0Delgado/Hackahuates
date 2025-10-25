@@ -3,7 +3,7 @@ import type {
   PredictionResponse,
   BatchPredictionRequest,
   BatchPredictionResponse,
-  ModelMetrics,
+  ModelInfoResponse,
   FeatureImportance,
   FeatureImportanceResponse,
   HealthResponse,
@@ -52,7 +52,7 @@ class APIService {
     return this.request<HealthResponse>('/health');
   }
 
-  // Single prediction
+  // Single prediction (product-level - 6 categories)
   async predict(data: PredictionRequest): Promise<PredictionResponse> {
     return this.request<PredictionResponse>('/api/v1/predict', {
       method: 'POST',
@@ -60,26 +60,35 @@ class APIService {
     });
   }
 
-  // Batch prediction (full flight)
+  // Batch prediction (multiple flights)
   async predictBatch(
     data: BatchPredictionRequest
   ): Promise<BatchPredictionResponse> {
-    return this.request<BatchPredictionResponse>('/api/v1/predict/batch', {
+    return this.request<BatchPredictionResponse>('/api/v1/predict-batch', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  // Get model metrics
-  async getModelMetrics(): Promise<ModelMetrics> {
-    return this.request<ModelMetrics>('/api/v1/model/metrics');
+  // Get model info (all 6 models)
+  async getModelInfo(): Promise<ModelInfoResponse> {
+    return this.request<ModelInfoResponse>('/api/v1/model-info');
   }
 
-  // Get feature importance
+  // Get model metrics (compatibility - calls model-info)
+  async getModelMetrics(): Promise<any> {
+    return this.getModelInfo();
+  }
+
+  // Get feature importance (if available)
   async getFeatureImportance(topN: number = 10): Promise<FeatureImportanceResponse> {
     return this.request<FeatureImportanceResponse>(
       `/api/v1/model/feature-importance?top_n=${topN}`
-    );
+    ).catch(() => ({
+      model: 'product-level',
+      top_features: {},
+      total_features: 81
+    }));
   }
 
   // Helper to convert feature importance response to array format

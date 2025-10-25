@@ -1,0 +1,65 @@
+{
+  "temporal": [
+    "MONTH_SIN",
+    "MONTH_COS",
+    "DAY_SIN",
+    "DAY_COS",
+    "IS_PEAK_SEASON",
+    "IS_LOW_SEASON",
+    "IS_WEEKEND"
+  ],
+  "route": [
+    "ROUTE_FREQUENCY",
+    "ROUTE_FREQUENCY_NORMALIZED",
+    "IS_HUB_ROUTE",
+    "IS_INTERNATIONAL",
+    "ORIGIN_FREQUENCY"
+  ],
+  "flight": [
+    "PASSENGERS",
+    "PASSENGERS_NORMALIZED",
+    "ITEMS_PER_PASSENGER",
+    "CATEGORIES_PER_PASSENGER"
+  ],
+  "historical": [
+    "ROUTE_7D_AVG",
+    "ROUTE_30D_AVG",
+    "WAREHOUSE_7D_AVG",
+    "ROUTE_STOCKOUT_HISTORY",
+    "PASSENGERS_LAG_1",
+    "PASSENGERS_LAG_7",
+    "CONSUMPTION_LAG_1",
+    "CONSUMPTION_LAG_7",
+    "CONSUMPTION_TREND_7D",
+    "SEASONAL_INDEX"
+  ],
+  "warehouse": [
+    "WAREHOUSE_AVG_CONSUMPTION",
+    "WAREHOUSE_STOCKOUT_RATE",
+    "WAREHOUSE_ACTIVITY"
+  ],
+  "category": [
+    "CATEGORY_DIVERSITY_INDEX",
+    "ITEMS_PER_CATEGORY",
+    "ITEMS_NORMALIZED",
+    "TOTAL_ITEMS_NORMALIZED"
+  ],
+  "interaction": [
+    "PASSENGERS_X_ITEMS",
+    "PASSENGERS_X_CATEGORIES",
+    "ROUTE_COMPLEXITY",
+    "WEEKEND_ROUTE_INTERACTION",
+    "PEAK_SEASON_PASSENGERS",
+    "HUB_ROUTE_PASSENGERS"
+  ],
+  "one_hot": [
+    "WAREHOUSE_7D_AVG",
+    "WAREHOUSE_AVG_CONSUMPTION",
+    "WAREHOUSE_STOCKOUT_RATE",
+    "WAREHOUSE_ACTIVITY",
+    "WAREHOUSE_Lisbon",
+    "WAREHOUSE_Madrid ",
+    "WAREHOUSE_Palma de Mallorca",
+    "WAREHOUSE_Porto"
+  ]
+}
