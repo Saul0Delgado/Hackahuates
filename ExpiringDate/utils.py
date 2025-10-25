@@ -2,8 +2,6 @@
 Utilidades para procesamiento de imágenes
 Versión mejorada con mejor manejo de errores y optimizaciones
 """
-import os
-import re
 import cv2
 import numpy as np
 from PIL import Image
@@ -195,40 +193,6 @@ def find_bbox(thresh):
     
     return cnts, bbox
 
-def crop_img(img, bbox):
-    """
-    Recorta la imagen usando el bounding box del documento
-    
-    Args:
-        img (numpy.ndarray): Imagen original
-        bbox (numpy.ndarray): Bounding box con 4 puntos
-        
-    Returns:
-        numpy.ndarray: Imagen recortada
-    """
-    try:
-        # Encontrar las coordenadas extremas
-        left, top = bbox[bbox.sum(axis=1).argmin()]
-        right, bottom = bbox[bbox.sum(axis=1).argmax()]
-        
-        # Asegurar que las coordenadas estén dentro de los límites
-        h, w = img.shape[:2]
-        left = max(0, left)
-        top = max(0, top)
-        right = min(w, right)
-        bottom = min(h, bottom)
-        
-        # Recortar
-        img_cropped = img[top:bottom, left:right]
-        
-        logger.debug(f"Imagen recortada: {img_cropped.shape}")
-        
-        return img_cropped
-        
-    except Exception as e:
-        logger.error(f"Error al recortar imagen: {e}")
-        return img  # Retornar imagen original si falla
-
 def image_smoothening(img):
     """
     Suaviza la imagen aplicando umbralización y filtros
@@ -282,3 +246,62 @@ def remove_noise_and_smooth(img):
     
     return final_img
 
+def order_points(pts):
+    """
+    Ordena los 4 puntos del bounding box en el orden:
+    top-left, top-right, bottom-right, bottom-left
+    """
+    # Inicializar una lista de coordenadas que se ordenarán
+    rect = np.zeros((4, 2), dtype="float32")
+
+    # El punto top-left tendrá la suma más pequeña,
+    # el punto bottom-right tendrá la suma más grande
+    s = pts.sum(axis=1)
+    rect[0] = pts[np.argmin(s)]
+    rect[2] = pts[np.argmax(s)]
+
+    # Ahora, calcular la diferencia entre los puntos,
+    # el top-right tendrá la diferencia más pequeña,
+    # el bottom-left tendrá la diferencia más grande
+    diff = np.diff(pts, axis=1)
+    rect[1] = pts[np.argmin(diff)]
+    rect[3] = pts[np.argmax(diff)]
+
+    # Retornar las coordenadas ordenadas
+    return rect
+
+def four_point_transform(image, pts):
+    """
+    Aplica una transformación de perspectiva a la imagen
+    usando los 4 puntos (bbox) del documento.
+    """
+    # Obtener los puntos ordenados
+    rect = order_points(pts)
+    (tl, tr, br, bl) = rect
+
+    # Calcular el ancho de la nueva imagen, que será
+    # la distancia máxima entre bottom-right y bottom-left
+    # o top-right y top-left
+    widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
+    widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
+    maxWidth = max(int(widthA), int(widthB))
+
+    # Calcular la altura de la nueva imagen
+    heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
+    heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
+    maxHeight = max(int(heightA), int(heightB))
+
+    # Definir los 4 puntos de destino para la vista "recta"
+    dst = np.array([
+        [0, 0],
+        [maxWidth - 1, 0],
+        [maxWidth - 1, maxHeight - 1],
+        [0, maxHeight - 1]], dtype="float32")
+
+    # Calcular la matriz de transformación de perspectiva
+    M = cv2.getPerspectiveTransform(rect, dst)
+    # Aplicar la transformación
+    warped = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
+
+    logger.debug(f"Imagen enderezada y recortada: {warped.shape}")
+    return warped

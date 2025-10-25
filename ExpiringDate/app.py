@@ -12,9 +12,17 @@ import logging
 from datetime import datetime
 import io  
 from PIL import Image 
+from pytesseract import Output
 
-from extract_date import process_image, pipeline
-from utils import random_string
+from extract_date import process_image, pipeline,process_image_diagnostic
+from utils import (
+    random_string,
+    rescale_image, 
+    threshold, 
+    find_bbox, 
+    four_point_transform,  
+    remove_noise_and_smooth
+)
 
 # Configuración de logging
 logging.basicConfig(
@@ -250,11 +258,11 @@ class TestPatterns(Resource):
             text = args['text']
             
             import re
-            from extract_date import DATE_PATTERNS
-            
+            from extract_date import get_all_patterns
+            all_patterns = get_all_patterns()
             results = []
             
-            for i, pattern in enumerate(DATE_PATTERNS):
+            for i, pattern in enumerate(all_patterns):
                 regex = re.compile(pattern, flags=re.IGNORECASE)
                 matches = list(re.finditer(regex, text))
                 
@@ -280,7 +288,7 @@ class TestPatterns(Resource):
                 'success': True,
                 'text_analyzed': text,
                 'text_length': len(text),
-                'total_patterns_tested': len(DATE_PATTERNS),
+                'total_patterns_tested': len(all_patterns),
                 'total_matches_found': total_matches,
                 'pattern_results': results
             }, 200
@@ -301,121 +309,32 @@ class FullDiagnostic(Resource):
         """
         try:
             args = upload_parser.parse_args()
-            img = args['image']
+            img_file = args['image']
             
-            if not img or img.filename == '':
+            if not img_file or img_file.filename == '':
                 return {"error": "No se envió ningún archivo"}, 400
             
-            # Guardar imagen
-            file_name = random_string()
-            file_path = os.path.join(UPLOAD_FOLDER, f'{file_name}.jpeg')
-            img.save(file_path)
+            # --- INICIO DE NUEVA LÓGICA ---
             
-            logger.info(f"Ejecutando diagnóstico completo en: {file_name}")
+            # Importar la nueva función de diagnóstico
             
-            diagnostic_result = {
-                'filename': img.filename,
-                'steps': {}
-            }
+            logger.info(f"Ejecutando diagnóstico completo en: {img_file.filename}")
+
+            # Cargar imagen en memoria
+            img = Image.open(img_file.stream)
             
-            # Paso 1: Información de la imagen
-            # from PIL import Image # Ya importado
-            import pytesseract
-            import cv2
+            # Ejecutar el pipeline de diagnóstico
+            diagnostic_result = process_image_diagnostic(img)
             
-            pil_img = Image.open(file_path)
-            diagnostic_result['steps']['1_image_info'] = {
-                'size': f"{pil_img.size[0]}x{pil_img.size[1]}",
-                'mode': pil_img.mode,
-                'format': pil_img.format
-            }
-            
-            # Paso 2: Preprocesamiento
-            from utils import rescale_image, threshold, find_bbox, crop_img, remove_noise_and_smooth
-            
-            img_array = rescale_image(pil_img)
-            diagnostic_result['steps']['2_preprocessing'] = {
-                'rescaled': True,
-                'size_after_rescale': f"{img_array.shape[1]}x{img_array.shape[0]}"
-            }
-            
-            # Paso 3: OCR con múltiples configuraciones
-            ocr_results = {}
-            configs = {
-                'default': '',
-                'psm_6_spa_eng': '--psm 6 -l spa+eng',
-                'psm_3_spa_eng': '--psm 3 -l spa+eng',
-            }
-            
-            for config_name, config_params in configs.items():
-                try:
-                    text = pytesseract.image_to_string(Image.fromarray(img_array), config=config_params)
-                    ocr_results[config_name] = {
-                        'text': text[:500],  # Primeros 500 caracteres
-                        'full_length': len(text),
-                        'has_content': len(text.strip()) > 0
-                    }
-                except Exception as e:
-                    ocr_results[config_name] = {'error': str(e)}
-            
-            diagnostic_result['steps']['3_ocr'] = ocr_results
-            
-            # Paso 4: Buscar fechas en cada resultado
-            from extract_date import find_date
-            import re
-            
-            dates_found = {}
-            for config_name, ocr_data in ocr_results.items():
-                if 'text' in ocr_data:
-                    # Buscar con find_date
-                    date = find_date(ocr_data['text'])
-                    
-                    # Buscar con regex simple para MM-YYYY
-                    mm_yyyy_pattern = r'\b(\d{2})-(\d{4})\b'
-                    mm_yyyy_matches = re.findall(mm_yyyy_pattern, ocr_data['text'])
-                    
-                    dates_found[config_name] = {
-                        'find_date_result': date.strftime("%Y-%m-%d") if date else None,
-                        'mm_yyyy_matches': mm_yyyy_matches,
-                        'text_preview': ocr_data['text'][:200]
-                    }
-            
-            diagnostic_result['steps']['4_date_detection'] = dates_found
-            
-            # Paso 5: Pipeline completo
-            # (Usamos el pipeline original que lee de disco)
-            try:
-                final_date = pipeline(file_name)
-                diagnostic_result['steps']['5_pipeline'] = {
-                    'success': final_date is not None,
-                    'date': final_date
-                }
-            except Exception as e:
-                diagnostic_result['steps']['5_pipeline'] = {
-                    'success': False,
-                    'error': str(e)
-                }
-            
-            # Limpiar
-            try:
-                os.remove(file_path)
-            except:
-                pass
-            
-            # Resumen
-            dates_detected = [d for d in dates_found.values() if d.get('find_date_result')]
-            diagnostic_result['summary'] = {
-                'total_ocr_configs_tested': len(configs),
-                'configs_with_text': sum(1 for r in ocr_results.values() if r.get('has_content')),
-                'dates_detected': len(dates_detected),
-                'final_result': diagnostic_result['steps']['5_pipeline'].get('date'),
-                'success': diagnostic_result['steps']['5_pipeline'].get('success', False)
-            }
+            final_date = diagnostic_result.get("7_final_result", {}).get("date")
             
             return {
                 'success': True,
-                'diagnostic': diagnostic_result
+                'final_result': final_date,
+                'diagnostic_steps': diagnostic_result
             }, 200
+            
+            # --- FIN DE NUEVA LÓGICA ---
             
         except Exception as e:
             logger.error(f"Error en diagnóstico completo: {str(e)}", exc_info=True)
