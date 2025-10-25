@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\garza\Documents\Hackahuates\ConsumptionPrediction\src\training.py", line 13, in <module>
+    from .models import XGBoostConsumptionModel, RandomForestConsumptionModel, EnsembleConsumptionModel
+  File "C:\Users\garza\Documents\Hackahuates\ConsumptionPrediction\src\models\__init__.py", line 5, in <module>
+    from .xgboost_model import XGBoostConsumptionModel
+  File "C:\Users\garza\Documents\Hackahuates\ConsumptionPrediction\src\models\xgboost_model.py", line 8, in <module>
+    import xgboost as xgb
+ModuleNotFoundError: No module named 'xgboost'
