@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Badge } from './ui/badge';
 import { apiService } from '../services/api';
 import { PRODUCT_CATEGORIES, WAREHOUSES, MODEL_PERFORMANCE, type PredictionRequest, type PredictionResponse, type WarehouseOption, type ProductCategory } from '../types/api';
+import { AlertTriangle } from 'lucide-react';
 
 export function PredictionForm() {
   const [loading, setLoading] = useState(false);
