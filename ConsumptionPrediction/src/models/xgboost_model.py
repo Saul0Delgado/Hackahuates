@@ -93,6 +93,19 @@ class XGBoostConsumptionModel(BaseConsumptionModel):
         if not self.is_fitted:
             raise ValueError(f"{self.name} is not fitted yet")
 
+        # Ensure X has the same columns as training data
+        if hasattr(self.model, 'feature_names_in_'):
+            expected_features = self.model.feature_names_in_
+            X = X.copy()
+
+            # Add missing columns with 0
+            for feature in expected_features:
+                if feature not in X.columns:
+                    X[feature] = 0
+
+            # Remove extra columns
+            X = X[expected_features]
+
         return self.model.predict(X)
 
     def predict_with_confidence(self, X: pd.DataFrame, percentile: float = 0.95) -> tuple:

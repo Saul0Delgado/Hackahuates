@@ -78,26 +78,38 @@ class FeatureEngineer:
 
         df = df.copy()
 
-        # Waste rate
-        df['waste_rate'] = df['Quantity_Returned'] / df['Standard_Specification_Qty']
+        # Check if we're in training mode (has these columns) or prediction mode (doesn't have them)
+        has_training_columns = 'Quantity_Returned' in df.columns and 'Quantity_Consumed' in df.columns
 
-        # Consumption rate
-        df['consumption_rate'] = df['Quantity_Consumed'] / df['Standard_Specification_Qty']
+        if has_training_columns:
+            # Training mode - use actual values
+            # Waste rate
+            df['waste_rate'] = df['Quantity_Returned'] / df['Standard_Specification_Qty']
 
-        # Consumption per passenger
-        df['consumption_per_passenger'] = df['Quantity_Consumed'] / df['Passenger_Count']
+            # Consumption rate
+            df['consumption_rate'] = df['Quantity_Consumed'] / df['Standard_Specification_Qty']
 
-        # Overage quantity
-        df['overage_qty'] = df['Standard_Specification_Qty'] - df['Quantity_Consumed']
+            # Consumption per passenger
+            df['consumption_per_passenger'] = df['Quantity_Consumed'] / df['Passenger_Count']
 
-        # Overage percentage
-        df['overage_percentage'] = np.where(
-            df['Quantity_Consumed'] > 0,
-            df['overage_qty'] / df['Quantity_Consumed'],
-            0
-        )
+            # Overage quantity
+            df['overage_qty'] = df['Standard_Specification_Qty'] - df['Quantity_Consumed']
 
-        # Specification per passenger
+            # Overage percentage
+            df['overage_percentage'] = np.where(
+                df['Quantity_Consumed'] > 0,
+                df['overage_qty'] / df['Quantity_Consumed'],
+                0
+            )
+        else:
+            # Prediction mode - use historical averages or defaults
+            df['waste_rate'] = 0.05  # Default 5% waste rate
+            df['consumption_rate'] = 0.95  # Default 95% consumption
+            df['consumption_per_passenger'] = 1.0  # Default 1 unit per passenger
+            df['overage_qty'] = 0.0
+            df['overage_percentage'] = 0.05
+
+        # Specification per passenger (always available)
         df['spec_per_passenger'] = df['Standard_Specification_Qty'] / df['Passenger_Count']
 
         logger.info(f"Created {6} consumption metrics")
@@ -120,7 +132,12 @@ class FeatureEngineer:
         df = df.copy()
 
         # Use train_df for aggregations, or df itself if training
-        agg_df = train_df if train_df is not None else df
+        agg_df = train_df.copy() if train_df is not None else df.copy()
+
+        # Ensure Product_ID has consistent type (string)
+        for data in [df, agg_df]:
+            if 'Product_ID' in data.columns:
+                data['Product_ID'] = data['Product_ID'].astype(str)
 
         # Ensure consumption metrics exist in agg_df
         if 'consumption_rate' not in agg_df.columns:
@@ -129,12 +146,16 @@ class FeatureEngineer:
 
         # By Product
         if self.feature_config['aggregations']['by_product']:
-            product_agg = agg_df.groupby('Product_ID').agg({
+            agg_dict = {
                 'consumption_rate': ['mean', 'std'],
                 'waste_rate': ['mean', 'std'],
-                'Quantity_Consumed': ['mean', 'std'],
                 'consumption_per_passenger': 'mean'
-            }).reset_index()
+            }
+            # Only include Quantity_Consumed if it exists (training mode)
+            if 'Quantity_Consumed' in agg_df.columns:
+                agg_dict['Quantity_Consumed'] = ['mean', 'std']
+
+            product_agg = agg_df.groupby('Product_ID').agg(agg_dict).reset_index()
 
             # Flatten column names
             product_agg.columns = ['Product_ID'] + [
@@ -147,16 +168,17 @@ class FeatureEngineer:
 
         # By Flight Type × Product
         if self.feature_config['aggregations']['by_flight_type']:
-            flight_product_agg = agg_df.groupby(['Flight_Type', 'Product_ID']).agg({
-                'consumption_rate': 'mean',
-                'Quantity_Consumed': 'mean'
-            }).reset_index()
+            agg_dict = {'consumption_rate': 'mean'}
+            if 'Quantity_Consumed' in agg_df.columns:
+                agg_dict['Quantity_Consumed'] = 'mean'
 
-            flight_product_agg.columns = [
-                'Flight_Type', 'Product_ID',
-                'flight_product_consumption_rate_mean',
-                'flight_product_qty_consumed_mean'
-            ]
+            flight_product_agg = agg_df.groupby(['Flight_Type', 'Product_ID']).agg(agg_dict).reset_index()
+
+            # Dynamically create column names based on what was aggregated
+            col_names = ['Flight_Type', 'Product_ID', 'flight_product_consumption_rate_mean']
+            if 'Quantity_Consumed' in agg_dict:
+                col_names.append('flight_product_qty_consumed_mean')
+            flight_product_agg.columns = col_names
 
             df = df.merge(flight_product_agg, on=['Flight_Type', 'Product_ID'], how='left')
             logger.info(f"  Added {len(flight_product_agg.columns)-2} flight×product aggregation features")
@@ -179,17 +201,18 @@ class FeatureEngineer:
 
         # By Origin × Product
         if self.feature_config['aggregations']['by_origin']:
-            origin_product_agg = agg_df.groupby(['Origin', 'Product_ID']).agg({
-                'Quantity_Consumed': 'mean'
-            }).reset_index()
+            if 'Quantity_Consumed' in agg_df.columns:
+                origin_product_agg = agg_df.groupby(['Origin', 'Product_ID']).agg({
+                    'Quantity_Consumed': 'mean'
+                }).reset_index()
 
-            origin_product_agg.columns = [
-                'Origin', 'Product_ID',
-                'origin_product_qty_consumed_mean'
-            ]
+                origin_product_agg.columns = [
+                    'Origin', 'Product_ID',
+                    'origin_product_qty_consumed_mean'
+                ]
 
-            df = df.merge(origin_product_agg, on=['Origin', 'Product_ID'], how='left')
-            logger.info(f"  Added {len(origin_product_agg.columns)-2} origin×product aggregation features")
+                df = df.merge(origin_product_agg, on=['Origin', 'Product_ID'], how='left')
+                logger.info(f"  Added {len(origin_product_agg.columns)-2} origin×product aggregation features")
 
         # Fill NaN with 0 for aggregation features (in case of unseen combinations)
         aggregation_cols = [col for col in df.columns if any([
@@ -268,14 +291,27 @@ class FeatureEngineer:
         exclude_cols = [
             'Flight_ID', 'Product_Name', 'Date', 'Crew_Feedback',
             'Standard_Specification_Qty', 'Quantity_Returned', 'Quantity_Consumed',
-            'Origin', 'Product_ID', 'Flight_Type', 'Service_Type'  # Original categorical (now encoded)
+            'Origin', 'Product_ID', 'Flight_Type', 'Service_Type',  # Original categorical (now encoded)
+            'Consumption_Qty', 'waste_qty', 'overage_qty'  # Temporary columns used in feature engineering
         ]
 
         # Get all columns except excluded and target
         feature_cols = [col for col in df.columns if col not in exclude_cols and col != target_col]
 
         X = df[feature_cols].copy()
-        y = df[target_col].copy()
+
+        # If target column is missing (inference mode), return a placeholder series
+        if target_col in df.columns:
+            y = df[target_col].copy()
+        else:
+            # Create an empty/placeholder series with same index so downstream code
+            # that expects a Series won't fail. Callers that are in inference mode
+            # typically ignore `y`, so this is safe.
+            try:
+                y = pd.Series([0.0] * len(df), index=df.index)
+            except Exception:
+                # Fallback to an empty float series if construction fails
+                y = pd.Series(dtype=float)
 
         logger.info(f"Selected {len(feature_cols)} features")
         logger.info(f"Feature columns: {feature_cols[:10]}... ({len(feature_cols) - 10} more)")
