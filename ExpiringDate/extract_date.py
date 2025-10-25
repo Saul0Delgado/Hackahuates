@@ -1,6 +1,8 @@
 """
 Módulo de extracción de fechas desde imágenes
-Versión mejorada con mejor detección de fechas y manejo de errores
+Mejor detección de fechas y manejo de errores
+Aprendizaje automático de patrones
+
 """
 import pytesseract
 from PIL import Image
@@ -18,10 +20,12 @@ from utils import (
     remove_noise_and_smooth
 )
 
+from pattern_learner import pattern_learner
+
 logger = logging.getLogger(__name__)
 
 # Patrones de fecha más robustos
-DATE_PATTERNS = [
+BASE_DATE_PATTERNS = [
     # --- Prioridad 1: Formatos numéricos completos DD/MM/YYYY (MÁS COMÚN) ---
     # CRÍTICO: Usar \s* para permitir MÚLTIPLES espacios opcionales
     # Ejemplos: 22-08-2025, 22 - 08 - 2025, 22  -  08  -  2025, 07.05.10
@@ -71,17 +75,32 @@ DATE_PATTERNS = [
 ]
 
 OCR_CONFIGS = [
+    '--psm 6 -l eng',  
     '--psm 6 -l spa+eng',
+    '--psm 11 -l eng',  
     '--psm 11 -l spa+eng',
-    '--psm 3 -l spa+eng'
+    '--psm 3 -l spa+eng',
+    '--psm 7 -l eng',  
 ]
 
-def find_date(text):
+def get_all_patterns():
+    """
+    Retorna todos los patrones: base + aprendidos
+    """
+    base = BASE_DATE_PATTERNS.copy()
+    learned = pattern_learner.get_all_patterns()
+    
+    # Patrones aprendidos tienen prioridad (van primero)
+    return learned + base
+
+def find_date(text, enable_learning=True):
     """
     Busca y extrae fechas de un texto usando múltiples patrones
+    Con capacidad de aprendizaje automático
     
     Args:
         text (str): Texto donde buscar fechas
+        enable_learning (bool): Si True, aprende nuevos patrones
         
     Returns:
         datetime: Objeto datetime con la fecha encontrada, o None si no se encuentra
@@ -92,17 +111,18 @@ def find_date(text):
     
     logger.debug(f"Buscando fechas en texto: {text[:100]}...")
     
+    all_patterns = get_all_patterns()
     dates_found = []
-    
+    matched_patterns = set()
     # Buscar con todos los patrones
-    for i, pattern in enumerate(DATE_PATTERNS):
+    for i, pattern in enumerate(all_patterns):
         regex = re.compile(pattern, flags=re.IGNORECASE)
         matches = list(re.finditer(regex, text))
         
         for match in matches:
             date_str = match.group(0)
             logger.debug(f"Patrón {i}: Coincidencia encontrada: '{date_str}'")
-            
+            matched_patterns.add(pattern)
             # Intentar parsear la fecha con configuración explícita
             try:
                 # Configuración optimizada para fechas de caducidad
@@ -111,7 +131,6 @@ def find_date(text):
                     languages=['es', 'en'], 
                     settings={
                         'PREFER_DAY_OF_MONTH': 'first',  # DD/MM/YYYY (formato europeo)
-                        'PREFER_DATES_FROM': 'future',   # Fechas de caducidad suelen ser futuras
                         'STRICT_PARSING': False,
                         'DATE_ORDER': 'DMY'  # Día-Mes-Año
                     }
@@ -121,9 +140,30 @@ def find_date(text):
                     # Almacenar: (fecha, texto_original, posición, índice_patrón)
                     dates_found.append((parsed_date, date_str, match.start(), i))
                     logger.debug(f"Fecha parseada: {parsed_date} desde '{date_str}'")
+
+                    if pattern in pattern_learner.learned_patterns:
+                        pattern_learner.pattern_usage[pattern] += 1
+
             except Exception as e:
                 logger.debug(f"Error al parsear '{date_str}': {e}")
                 continue
+    
+    if not dates_found and enable_learning:
+        logger.info("No se encontraron fechas. Intentando aprender nuevos patrones...")
+        
+        # Detectar candidatos potenciales
+        candidates = pattern_learner.detect_potential_date_strings(text)
+        
+        if candidates:
+            logger.info(f"Encontrados {len(candidates)} candidatos para aprendizaje")
+            
+            for candidate, pos in candidates:
+                # Intentar aprender del candidato
+                if pattern_learner.learn_from_candidate(candidate):
+                    logger.info(f"Patrón aprendido desde: '{candidate}'")
+                    
+                    # Reintentar búsqueda con el nuevo patrón
+                    return find_date(text, enable_learning=False)
     
     if not dates_found:
         logger.info("No se encontraron fechas válidas en el texto")

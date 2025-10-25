@@ -50,8 +50,10 @@ api = Api(
 )
 
 # Namespace
-ns = api.namespace('extraction', description='Operaciones de extracción de fechas')
-
+Extraction = api.namespace('extraction', description='Operaciones de extracción de fechas')
+Test = api.namespace('test', description='Operaciones de test para extracción de fechas')
+Auto_Learning = api.namespace('auto-learning', description='Operaciones aprendizaje automatico de expresiones regulares para extracción de fechas')
+Health = api.namespace('health', description='Verificacion de vida de la API')
 # Parsers
 b64_parser = reqparse.RequestParser()
 b64_parser.add_argument(
@@ -99,7 +101,7 @@ def index():
         }
     }
 
-@ns.route('/health')
+@Health.route('/health')
 class Health(Resource):
     def get(self):
         """
@@ -112,11 +114,10 @@ class Health(Resource):
         }
 
 # ==================================================================
-# LOS ENDPOINTS DE DIAGNÓSTICO (/test/...)
+# LOS ENDPOINTS DE DIAGNÓSTICO 
 # SE MANTIENEN IGUALES. USAN EL pipeline() original
-# que lee de disco, lo cual es correcto para depuración.
 # ==================================================================
-@ns.route('/test/tesseract')
+@Test.route('/test/tesseract')
 class TestTesseract(Resource):
     def get(self):
         """
@@ -157,11 +158,11 @@ class TestTesseract(Resource):
                 }
             }, 500
 
-@ns.route('/test/ocr')
+@Test.route('/test/ocr')
 class TestOCR(Resource):
-    @ns.expect(upload_parser)
-    @ns.response(200, 'OCR ejecutado exitosamente')
-    @ns.response(400, 'Error en los datos de entrada')
+    @Test.expect(upload_parser)
+    @Test.response(200, 'OCR ejecutado exitosamente')
+    @Test.response(400, 'Error en los datos de entrada')
     def post(self):
         """
         Prueba OCR en una imagen y muestra el texto extraído sin procesar fechas
@@ -233,10 +234,10 @@ class TestOCR(Resource):
                 "details": str(e)
             }, 500
 
-@ns.route('/test/patterns')
+@Test.route('/test/patterns')
 class TestPatterns(Resource):
-    @ns.expect(reqparse.RequestParser().add_argument('text', type=str, required=True, location='json', help='Texto donde buscar fechas'))
-    @ns.response(200, 'Patrones probados exitosamente')
+    @Test.expect(reqparse.RequestParser().add_argument('text', type=str, required=True, location='json', help='Texto donde buscar fechas'))
+    @Test.response(200, 'Patrones probados exitosamente')
     def post(self):
         """
         Prueba todos los patrones de fecha en un texto dado
@@ -290,10 +291,10 @@ class TestPatterns(Resource):
                 "details": str(e)
             }, 500
 
-@ns.route('/test/full_diagnostic')
+@Test.route('/test/full_diagnostic')
 class FullDiagnostic(Resource):
-    @ns.expect(upload_parser)
-    @ns.response(200, 'Diagnóstico completo ejecutado')
+    @Test.expect(upload_parser)
+    @Test.response(200, 'Diagnóstico completo ejecutado')
     def post(self):
         """
         Ejecuta un diagnóstico completo: preprocesamiento, OCR, detección de patrones y extracción de fechas
@@ -424,16 +425,89 @@ class FullDiagnostic(Resource):
             }, 500
 
 # ==================================================================
+# ENDPOINTS DE APRENDIZAJE DE PATRONES 
+# ==================================================================
+@Auto_Learning.route('/patterns/learned')
+class LearnedPatterns(Resource):
+    def get(self):
+        """
+        Lista todos los patrones aprendidos
+        """
+        from pattern_learner import pattern_learner
+        
+        patterns = pattern_learner.get_all_patterns()
+        top_patterns = pattern_learner.get_top_patterns(20)
+        
+        return {
+            'success': True,
+            'total_learned': len(patterns),
+            'patterns': patterns,
+            'most_used': [
+                {'pattern': p, 'usage_count': count}
+                for p, count in top_patterns
+            ]
+        }, 200
+
+@Auto_Learning.route('/patterns/prune')
+class PrunePatterns(Resource):
+    def post(self):
+        """
+        Elimina patrones poco usados
+        """
+        from pattern_learner import pattern_learner
+        
+        parser = reqparse.RequestParser()
+        parser.add_argument('min_usage', type=int, default=3, location='json')
+        args = parser.parse_args()
+        
+        before = len(pattern_learner.learned_patterns)
+        pattern_learner.prune_unused_patterns(args['min_usage'])
+        after = len(pattern_learner.learned_patterns)
+        
+        return {
+            'success': True,
+            'removed': before - after,
+            'remaining': after
+        }, 200
+
+@Auto_Learning.route('/patterns/reset')
+class ResetPatterns(Resource):
+    def post(self):
+        """
+        Reinicia todos los patrones aprendidos (CUIDADO)
+        """
+        from pattern_learner import pattern_learner
+        import os
+        
+        try:
+            if os.path.exists(pattern_learner.LEARNED_PATTERNS_FILE):
+                os.remove(pattern_learner.LEARNED_PATTERNS_FILE)
+            
+            pattern_learner.learned_patterns = []
+            pattern_learner.pattern_usage.clear()
+            
+            return {
+                'success': True,
+                'message': 'Patrones aprendidos eliminados'
+            }, 200
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e)
+            }, 500
+
+
+# ==================================================================
 # ENDPOINTS DE PRODUCCIÓN (MODIFICADOS)
 # ==================================================================
 
-@ns.route('/extract_date')
+@Extraction.route('/extract_date')
 class SendB64Image(Resource):
-    @ns.expect(b64_parser)
-    @ns.response(200, 'Fecha extraída exitosamente')
-    @ns.response(400, 'Error en los datos de entrada')
-    @ns.response(422, 'No se pudo procesar la imagen')
-    @ns.response(500, 'Error interno del servidor')
+    @Extraction.expect(b64_parser)
+    @Extraction.response(200, 'Fecha extraída exitosamente')
+    @Extraction.response(400, 'Error en los datos de entrada')
+    @Extraction.response(422, 'No se pudo procesar la imagen')
+    @Extraction.response(500, 'Error interno del servidor')
     def post(self):
         """
         Extrae la fecha de una imagen codificada en Base64 (en memoria)
@@ -493,13 +567,13 @@ class SendB64Image(Resource):
                 "details": str(e)
             }, 500
 
-@ns.route('/extract_date_from_image')
+@Extraction.route('/extract_date_from_image')
 class UploadImage(Resource):
-    @ns.expect(upload_parser)
-    @ns.response(200, 'Fecha extraída exitosamente')
-    @ns.response(400, 'Error en los datos de entrada')
-    @ns.response(422, 'No se pudo procesar la imagen')
-    @ns.response(500, 'Error interno del servidor')
+    @Extraction.expect(upload_parser)
+    @Extraction.response(200, 'Fecha extraída exitosamente')
+    @Extraction.response(400, 'Error en los datos de entrada')
+    @Extraction.response(422, 'No se pudo procesar la imagen')
+    @Extraction.response(500, 'Error interno del servidor')
     def post(self):
         """
         Extrae la fecha de un archivo de imagen cargado (en memoria)
