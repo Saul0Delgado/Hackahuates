@@ -5,6 +5,7 @@ import type {
   BatchPredictionResponse,
   ModelMetrics,
   FeatureImportance,
+  FeatureImportanceResponse,
   HealthResponse,
 } from '../types/api';
 
@@ -75,10 +76,18 @@ class APIService {
   }
 
   // Get feature importance
-  async getFeatureImportance(topN: number = 10): Promise<FeatureImportance[]> {
-    return this.request<FeatureImportance[]>(
+  async getFeatureImportance(topN: number = 10): Promise<FeatureImportanceResponse> {
+    return this.request<FeatureImportanceResponse>(
       `/api/v1/model/feature-importance?top_n=${topN}`
     );
+  }
+
+  // Helper to convert feature importance response to array format
+  featureImportanceToArray(response: FeatureImportanceResponse): FeatureImportance[] {
+    return Object.entries(response.top_features).map(([feature, importance]) => ({
+      feature,
+      importance,
+    }));
   }
 
   // List available models

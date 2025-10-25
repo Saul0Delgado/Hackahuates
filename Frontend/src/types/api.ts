@@ -138,10 +138,26 @@ export interface ModelMetrics {
 
 /**
  * Feature importance for model interpretation
+ *
+ * @field feature - Feature/variable name
+ * @field importance - Importance score (0-1, where 1 = most important)
  */
 export interface FeatureImportance {
   feature: string;
   importance: number;
+}
+
+/**
+ * Feature importance response from backend
+ *
+ * @field model - Model name (xgboost, ensemble, random_forest)
+ * @field top_features - Dictionary of top features and their importance scores
+ * @field total_features - Total number of features in the model
+ */
+export interface FeatureImportanceResponse {
+  model: string;
+  top_features: Record<string, number>; // Dict of feature_name: importance_score
+  total_features: number;
 }
 
 /**
