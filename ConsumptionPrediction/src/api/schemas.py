@@ -89,6 +89,7 @@ class ProductPrediction(BaseModel):
     upper_bound: float
     confidence_score: float
     expected_waste: float
+    expected_shortage: float = Field(..., ge=0, le=1, description="Probability of shortage (0.0 or 0.1)")
 
 
 class BatchPredictionResponse(BaseModel):

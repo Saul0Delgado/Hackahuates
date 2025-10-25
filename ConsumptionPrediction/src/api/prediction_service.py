@@ -44,16 +44,18 @@ class PredictionService:
         'short-haul': 'short-haul'
     }
 
-    # Service type mapping (frontend values to training values)
+    # Service type mapping (to training dataset values)
+    # Dataset contains only two service types: 'Retail' and 'Pick & Pack'
     SERVICE_TYPE_MAP = {
+        # Direct mappings (preferred)
+        'Retail': 'Retail',
+        'Pick & Pack': 'Pick & Pack',
+        # Legacy/fallback mappings (for backward compatibility)
         'ECONOMY': 'Retail',
         'BUSINESS': 'Retail',
         'FIRST_CLASS': 'Retail',
         'PREMIUM_ECONOMY': 'Retail',
         'PICK_AND_PACK': 'Pick & Pack',
-        # Already correct values
-        'Retail': 'Retail',
-        'Pick & Pack': 'Pick & Pack'
     }
 
     def __init__(self, model_name: str = "xgboost"):
@@ -69,9 +71,58 @@ class PredictionService:
         self.feature_engineer = None
         self.all_models = {}
         self.train_df = None  # Reference training data for aggregations
+        self.product_return_rates = {}  # Historical return rates by product
 
         # Load models
         self._load_models()
+
+    def _calculate_return_rates(self) -> None:
+        """
+        Calculate historical return rates by product
+
+        Return rate = Quantity_Returned / Standard_Specification_Qty
+        This represents the percentage of prepared items that are returned (not consumed)
+        """
+        try:
+            if self.train_df is None or len(self.train_df) == 0:
+                logger.warning("No training data available for return rate calculation")
+                return
+
+            # Group by Product_ID and calculate return rate
+            for product_id, group in self.train_df.groupby('Product_ID'):
+                total_spec = group['Standard_Specification_Qty'].sum()
+                total_returned = group['Quantity_Returned'].sum()
+
+                if total_spec > 0:
+                    return_rate = total_returned / total_spec
+                else:
+                    return_rate = 0.0
+
+                # Map Product_ID string to numeric ID
+                numeric_id = None
+                for num_id, str_id in self.PRODUCT_ID_MAP.items():
+                    if str_id == product_id:
+                        numeric_id = num_id
+                        break
+
+                if numeric_id:
+                    self.product_return_rates[numeric_id] = return_rate
+                    logger.debug(f"Product {product_id} (ID {numeric_id}): return_rate={return_rate:.4f}")
+
+            # Set default rate for any missing products
+            default_rate = 0.15  # Default 15% return rate
+            for product_id in range(1, 11):
+                if product_id not in self.product_return_rates:
+                    self.product_return_rates[product_id] = default_rate
+
+            logger.info(f"Calculated return rates for {len(self.product_return_rates)} products")
+            logger.debug(f"Return rates: {self.product_return_rates}")
+
+        except Exception as e:
+            logger.warning(f"Error calculating return rates: {e}")
+            # Set default rates for all products
+            for product_id in range(1, 11):
+                self.product_return_rates[product_id] = 0.15
 
     def _load_models(self) -> None:
         """Load all trained models"""
@@ -124,6 +175,9 @@ class PredictionService:
                 if train_path.exists():
                     self.train_df = pd.read_csv(train_path)
                     logger.info(f"Loaded reference training data: {len(self.train_df)} rows")
+
+                    # Calculate historical return rates by product
+                    self._calculate_return_rates()
                 else:
                     logger.warning("Training data not found, predictions may have feature mismatches")
             except Exception as e:
@@ -187,15 +241,25 @@ class PredictionService:
 
             # Calculate business metrics
             predicted_qty = float(prediction[0])
-            waste_expected = max(0, predicted_qty - passenger_count)
-            shortage_prob = 0.0 if predicted_qty >= passenger_count else 0.10
+
+            # Expected waste = predicted_qty * historical_return_rate
+            # (percentage of items prepared that will be returned/not consumed)
+            return_rate = self.product_return_rates.get(product_id, 0.15)
+            expected_waste = predicted_qty * return_rate
+
+            # Expected shortage probability
+            shortage_prob = 0.10 if predicted_qty < passenger_count else 0.0
+
+            # Model R² score (confidence in model's ability to explain variance)
+            # This varies by model but is approximately 0.9898 for XGBoost
+            model_r2_score = 0.9898  # From XGBoost test set performance
 
             result = {
                 'predicted_quantity': predicted_qty,
                 'lower_bound': float(lower[0]),
                 'upper_bound': float(upper[0]),
-                'confidence_score': 0.9898,  # From XGBoost R² on test set
-                'expected_waste': waste_expected,
+                'confidence_score': model_r2_score,  # Model R² (not prediction confidence)
+                'expected_waste': expected_waste,  # Calculated as qty * return_rate
                 'expected_shortage': shortage_prob,
                 'model_used': self.model_name
             }
@@ -252,7 +316,8 @@ class PredictionService:
                     'lower_bound': pred_result['lower_bound'],
                     'upper_bound': pred_result['upper_bound'],
                     'confidence_score': pred_result['confidence_score'],
-                    'expected_waste': pred_result['expected_waste']
+                    'expected_waste': pred_result['expected_waste'],
+                    'expected_shortage': pred_result['expected_shortage']
                 })
 
                 # Accumulate totals
