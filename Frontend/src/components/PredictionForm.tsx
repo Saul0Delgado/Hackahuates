@@ -32,20 +32,20 @@ export function PredictionForm() {
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
 
     try {
       const prediction = await apiService.predict(formData);
       setResult(prediction);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al hacer la predicción');
-      setResult(null);
+      setError(err instanceof Error ? err.message : "Error al hacer la predicción")
+      setResult(null)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleInputChange = (field: keyof PredictionRequest, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -53,7 +53,7 @@ export function PredictionForm() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="border-border/50">
         <CardHeader>
           <CardTitle>Predicción de Comidas por Categoría</CardTitle>
           <CardDescription>
@@ -193,8 +193,13 @@ export function PredictionForm() {
             </div>
 
             {error && (
-              <div className="p-4 bg-destructive/10 border border-destructive rounded-md text-destructive text-sm">
-                {error}
+              <div
+                className="p-4 bg-destructive/10 border border-destructive/50 rounded-lg text-destructive text-sm flex items-start gap-2"
+                role="alert"
+                aria-live="polite"
+              >
+                <AlertTriangle className="size-4 mt-0.5 shrink-0" />
+                <span>{error}</span>
               </div>
             )}
 
@@ -207,7 +212,7 @@ export function PredictionForm() {
 
       {result && <PredictionResults result={result} />}
     </div>
-  );
+  )
 }
 
 interface PredictionResultsProps {

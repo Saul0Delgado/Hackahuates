@@ -9,8 +9,8 @@ export function ModelMetricsDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadMetrics();
-  }, []);
+    loadMetrics()
+  }, [])
 
   const loadMetrics = async () => {
     try {
@@ -34,7 +34,7 @@ export function ModelMetricsDashboard() {
           ⏳ Cargando métricas de los modelos...
         </CardContent>
       </Card>
-    );
+    )
   }
 
   if (error) {
@@ -48,7 +48,7 @@ export function ModelMetricsDashboard() {
           </p>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   return (
@@ -392,7 +392,7 @@ export function ModelMetricsDashboard() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
 
 interface MetricSummaryCardProps {
@@ -443,5 +443,5 @@ function MetricRow({ label, value, color }: MetricRowProps) {
       <span className="text-muted-foreground">{label}</span>
       <span className={`font-bold ${colorMap[color]}`}>{value}</span>
     </div>
-  );
+  )
 }
