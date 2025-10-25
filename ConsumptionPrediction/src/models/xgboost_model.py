@@ -225,76 +225,68 @@ class XGBoostConsumptionModel(BaseConsumptionModel):
                                X_val: pd.DataFrame, y_val: pd.Series,
                                quantiles: list = None, verbose: bool = True) -> Dict:
         """
-        Train ensemble of quantile models for safety stock prediction
+        Train Q90 quantile model for safety stock prediction
 
         Args:
             X_train: Training features
             y_train: Training target
             X_val: Validation features
             y_val: Validation target
-            quantiles: List of quantiles to train (default: [0.50, 0.75, 0.90, 0.95])
+            quantiles: Ignored - always trains only Q90
             verbose: Whether to print progress
 
         Returns:
-            Dictionary of trained quantile models
+            Dictionary with single Q90 model
         """
-        if quantiles is None:
-            quantiles = [0.50, 0.75, 0.90, 0.95]
-
         if verbose:
-            logger.info(f"Training quantile ensemble for shortage mitigation...")
+            logger.info(f"Training Q90 quantile model for safety stock...")
 
         self.quantile_models = {}
 
-        for quantile in quantiles:
-            if verbose:
-                logger.info(f"  Training Q{int(quantile*100)} model...")
+        # Train only Q90
+        quantile = 0.90
+        if verbose:
+            logger.info(f"  Training Q90 model...")
 
-            q_model = XGBoostConsumptionModel(quantile=quantile)
-            q_model.train(X_train, y_train, X_val, y_val, verbose=False)
-            self.quantile_models[quantile] = q_model
+        q_model = XGBoostConsumptionModel(quantile=quantile)
+        q_model.train(X_train, y_train, X_val, y_val, verbose=False)
+        self.quantile_models[quantile] = q_model
 
         if verbose:
-            logger.info(f"Quantile ensemble training complete")
-            logger.info(f"Available quantiles: {list(self.quantile_models.keys())}")
+            logger.info(f"Q90 quantile training complete")
 
         return self.quantile_models
 
-    def predict_quantiles(self, X: pd.DataFrame) -> Dict[str, np.ndarray]:
+    def predict_quantiles(self, X: pd.DataFrame) -> np.ndarray:
         """
-        Get quantile predictions for confidence intervals and safety stock
+        Get Q90 safety stock prediction
 
         Args:
             X: Feature matrix
 
         Returns:
-            Dictionary with quantile predictions
+            Q90 predictions array
         """
         if not self.quantile_models:
             raise ValueError("Quantile models not trained. Call train_quantile_ensemble first.")
 
-        predictions = {}
-        for quantile, model in self.quantile_models.items():
-            predictions[f'Q{int(quantile*100)}'] = model.predict(X)
+        # Return only Q90
+        return self.quantile_models[0.90].predict(X)
 
-        return predictions
-
-    def get_safety_stock_recommendation(self, X: pd.DataFrame, percentile: float = 90) -> np.ndarray:
+    def get_safety_stock_recommendation(self, X: pd.DataFrame) -> np.ndarray:
         """
-        Get safety stock recommendation using quantile prediction
+        Get Q90 safety stock recommendation
 
         Args:
             X: Feature matrix
-            percentile: Percentile to use for safety stock (default 90)
 
         Returns:
-            Recommended quantities with safety buffer
+            Q90 recommended quantities
         """
-        quantile_key = percentile / 100
-        if quantile_key not in self.quantile_models:
-            raise ValueError(f"Quantile {percentile} not available. Train with train_quantile_ensemble first.")
+        if 0.90 not in self.quantile_models:
+            raise ValueError("Q90 model not trained. Call train_quantile_ensemble first.")
 
-        return self.quantile_models[quantile_key].predict(X)
+        return self.quantile_models[0.90].predict(X)
 
     def summary(self) -> str:
         """
@@ -317,8 +309,7 @@ class XGBoostConsumptionModel(BaseConsumptionModel):
                    f"  Max depth: {max_depth}")
 
             if self.quantile_models:
-                quantiles = list(self.quantile_models.keys())
-                info += f"\n  Quantile ensemble: {[f'Q{int(q*100)}' for q in quantiles]}"
+                info += f"\n  Safety stock model: Q90"
 
             return info
 

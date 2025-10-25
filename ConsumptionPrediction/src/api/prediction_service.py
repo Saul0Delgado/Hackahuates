@@ -308,6 +308,74 @@ class PredictionService:
         """Get list of available models"""
         return list(self.all_models.keys())
 
+    def get_safety_stock(self, passenger_count: int, product_id: int,
+                        flight_type: str, service_type: str, origin: str,
+                        unit_cost: float, flight_date: Optional[str] = None) -> Dict:
+        """
+        Get Q90 safety stock recommendation
+
+        Args:
+            passenger_count: Number of passengers
+            product_id: Product ID
+            flight_type: Flight type
+            service_type: Service type
+            origin: Origin city/code
+            unit_cost: Unit cost in USD
+            flight_date: Flight date (YYYY-MM-DD)
+
+        Returns:
+            Dictionary with Q90 safety stock recommendation
+        """
+        try:
+            # Create input dataframe
+            input_data = pd.DataFrame({
+                'Passenger_Count': [passenger_count],
+                'Product_ID': [product_id],
+                'Flight_Type': [flight_type],
+                'Service_Type': [service_type],
+                'Origin': [origin],
+                'Unit_Cost': [unit_cost],
+                'Consumption_Qty': [passenger_count],
+                'Date': [flight_date if flight_date else datetime.now().strftime('%Y-%m-%d')],
+                'waste_qty': [0],
+                'overage_qty': [0],
+            })
+
+            # Transform features
+            X, _ = self.feature_engineer.transform(input_data, fit=False)
+
+            # Get base prediction
+            base_pred = self.model.predict(X)[0]
+
+            # Get Q90 safety stock
+            safety_stock_qty = base_pred
+
+            if hasattr(self.model, 'predict_quantiles') and hasattr(self.model, 'quantile_models') and self.model.quantile_models:
+                try:
+                    safety_stock_qty = self.model.predict_quantiles(X)[0]
+                except Exception as e:
+                    logger.warning(f"Could not get Q90 quantile, using base prediction: {e}")
+
+            # Calculate safety margin
+            safety_margin = safety_stock_qty - base_pred
+            total_safety_cost = safety_margin * unit_cost
+
+            result = {
+                'product_id': product_id,
+                'base_prediction': float(base_pred),
+                'q90_safety_stock': float(safety_stock_qty),
+                'safety_margin': float(safety_margin),
+                'safety_margin_cost': float(total_safety_cost),
+                'unit_cost': unit_cost,
+                'model_used': self.model_name
+            }
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Error getting Q90 safety stock: {e}")
+            raise
+
     def switch_model(self, model_name: str) -> bool:
         """
         Switch to a different model

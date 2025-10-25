@@ -25,17 +25,16 @@ def main():
 
     # Run with both optimizations
     print("This will:")
-    print("  1. Run Bayesian hyperparameter optimization (50 trials, ~15 minutes)")
-    print("  2. Train optimized XGBoost model")
-    print("  3. Train quantile ensemble (Q50, Q75, Q90, Q95) for safety stock")
+    print("  1. Run Bayesian hyperparameter optimization (300 trials, ~90 minutes)")
+    print("  2. Train optimized XGBoost model with best hyperparameters")
+    print("  3. Train Q90 safety stock model")
     print()
 
     try:
-        # Run with 100 trials for Bayesian optimization (increased from 50)
         best_model_name, best_model = pipeline.run(
             reload_data=False,
-            optimize_hyperparams=True,  # Enable Bayesian optimization (100 trials)
-            train_quantiles=True        # Enable quantile ensemble
+            optimize_hyperparams=True,  # Enable Bayesian optimization (300 trials)
+            train_quantiles=True        # Train Q90 safety stock model
         )
 
         print()
@@ -46,15 +45,11 @@ def main():
         print(f"Best Model: {best_model_name}")
         print()
         print("Model saved to: data/models/xgboost.pkl")
+        print("Q90 safety stock model saved to: data/models/xgboost_quantiles.pkl")
         print()
-        print("New Features:")
-        print("  - Optimized hyperparameters (via Bayesian search)")
-        print("  - Quantile predictions (Q50, Q75, Q90, Q95)")
-        print("  - Safety stock recommendations (Q90)")
-        print()
-        print("Expected Improvements:")
-        print("  - MAE reduction: ~9% (3.15 → 2.87)")
-        print("  - Shortage rate reduction: ~50% (58.82% → ~10-20%)")
+        print("Features:")
+        print("  - Optimized hyperparameters (300-trial Bayesian optimization)")
+        print("  - Q90 quantile model for safety stock recommendations")
         print()
 
     except KeyboardInterrupt:

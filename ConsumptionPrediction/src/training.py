@@ -274,7 +274,7 @@ class TrainingPipeline:
 
     def train_quantile_ensemble(self, train_data: Dict, val_data: Dict, test_data: Dict = None) -> None:
         """
-        Train quantile models for safety stock prediction
+        Train Q90 safety stock model
 
         Args:
             train_data: Training data with X and y
@@ -282,7 +282,7 @@ class TrainingPipeline:
             test_data: Optional test data for evaluation
         """
         logger.info("\n" + "="*80)
-        logger.info("TRAINING QUANTILE ENSEMBLE")
+        logger.info("TRAINING Q90 SAFETY STOCK MODEL")
         logger.info("="*80)
 
         X_train, y_train = train_data['X'], train_data['y']
@@ -290,33 +290,32 @@ class TrainingPipeline:
 
         xgb_model = self.models.get('xgboost')
         if xgb_model is None:
-            logger.warning("XGBoost model not trained. Skipping quantile ensemble.")
+            logger.warning("XGBoost model not trained. Skipping Q90 model.")
             return
 
         xgb_model.train_quantile_ensemble(X_train, y_train, X_val, y_val, verbose=True)
-        logger.info("Quantile ensemble training complete")
+        logger.info("Q90 safety stock model training complete")
 
-        # Evaluate quantiles on test set if provided
+        # Evaluate on test set if provided
         if test_data is not None:
             X_test, y_test = test_data['X'], test_data['y']
             y_test_array = y_test.values if isinstance(y_test, pd.Series) else y_test
 
             logger.info("\n" + "="*80)
-            logger.info("QUANTILE ENSEMBLE EVALUATION")
+            logger.info("Q90 SAFETY STOCK EVALUATION")
             logger.info("="*80)
 
             # Get predictions
             base_pred = xgb_model.predict(X_test)
-            quantile_preds = xgb_model.predict_quantiles(X_test)
+            q90_pred = xgb_model.predict_quantiles(X_test)
 
-            # Calculate shortage reduction
+            # Calculate metrics
             base_shortages = np.sum(y_test_array > base_pred)
-            q90_shortages = np.sum(y_test_array > quantile_preds['Q90'])
+            q90_shortages = np.sum(y_test_array > q90_pred)
             shortage_reduction = ((base_shortages - q90_shortages) / base_shortages * 100) if base_shortages > 0 else 0
 
-            # Calculate waste comparison
             base_waste = np.mean(np.maximum(base_pred - y_test_array, 0))
-            q90_waste = np.mean(np.maximum(quantile_preds['Q90'] - y_test_array, 0))
+            q90_waste = np.mean(np.maximum(q90_pred - y_test_array, 0))
 
             logger.info(f"\nBase Model (Mean):")
             logger.info(f"  Shortages: {base_shortages}/{len(y_test_array)} ({base_shortages/len(y_test_array)*100:.1f}%)")
@@ -369,7 +368,7 @@ class TrainingPipeline:
             xgb_model = XGBoostConsumptionModel()
             opt_results = xgb_model.optimize_hyperparameters(
                 X_train, y_train, X_val, y_val,
-                n_trials=150, verbose=True
+                n_trials=300, verbose=True  # Bayesian optimization with 300 trials
             )
             best_xgb_params = opt_results['best_params']
             logger.info(f"\nBest MAE from optimization: {opt_results['best_score']:.4f}")

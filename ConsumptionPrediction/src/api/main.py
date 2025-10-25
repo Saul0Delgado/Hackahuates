@@ -149,6 +149,61 @@ async def predict_single(request: PredictionRequest):
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
 
+@app.post("/api/v1/safety-stock",
+          tags=["Predictions"],
+          summary="Q90 Safety Stock Recommendation",
+          responses={
+              200: {"description": "Q90 safety stock recommendation"},
+              400: {"description": "Invalid input"},
+              500: {"description": "Prediction error"}
+          })
+async def get_safety_stock_recommendation(
+    passenger_count: int = Query(..., description="Number of passengers"),
+    product_id: int = Query(..., description="Product ID"),
+    flight_type: str = Query(..., description="Flight type: DOMESTIC, INTERNATIONAL, CHARTER"),
+    service_type: str = Query(..., description="Service type: ECONOMY, BUSINESS"),
+    origin: str = Query(..., description="Origin airport code"),
+    unit_cost: float = Query(..., description="Unit cost in USD"),
+    flight_date: str = Query(None, description="Flight date YYYY-MM-DD (optional)")
+):
+    """
+    Get Q90 safety stock recommendation
+
+    Returns Q90 quantile prediction for inventory planning.
+
+    **Parameters:**
+    - `passenger_count`: Number of passengers (1-500)
+    - `product_id`: Product ID (1-10)
+    - `flight_type`: DOMESTIC, INTERNATIONAL, or CHARTER
+    - `service_type`: ECONOMY or BUSINESS
+    - `origin`: Origin airport code
+    - `unit_cost`: Cost per unit in USD
+    - `flight_date`: Optional date in YYYY-MM-DD format
+
+    **Returns:**
+    - `base_prediction`: Mean prediction (Q50)
+    - `q90_safety_stock`: Q90 quantile recommendation
+    - `safety_margin`: Additional units above mean
+    - `safety_margin_cost`: Cost of safety margin
+    - `unit_cost`: Unit cost used
+    - `model_used`: Which model made prediction
+    """
+    try:
+        result = prediction_service.get_safety_stock(
+            passenger_count=passenger_count,
+            product_id=product_id,
+            flight_type=flight_type,
+            service_type=service_type,
+            origin=origin,
+            unit_cost=unit_cost,
+            flight_date=flight_date
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Q90 safety stock error: {e}")
+        raise HTTPException(status_code=500, detail=f"Q90 safety stock failed: {str(e)}")
+
+
 @app.post("/api/v1/predict/batch", response_model=BatchPredictionResponse,
           tags=["Predictions"],
           summary="Batch Flight Predictions",
