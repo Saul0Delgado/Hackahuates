@@ -1,0 +1,114 @@
+======================================================================
+PRODUCT-LEVEL MODELS SUMMARY
+======================================================================
+
+Models Trained:
+
+1. Cold Drink
+   Train R²: 0.9999
+   Test R²:  0.9715
+   Test MAE: 0.2566
+   Test Accuracy (±5%): 71.52%
+   Model saved to: C:\Users\garza\Documents\Hackahuates\ConsumptionPredictionv2\pipeline\04_model_training\outputs_producto_level\xgboost_cold_drink.pkl
+
+2. Savoury Snacks
+   Train R²: 0.9999
+   Test R²:  0.9700
+   Test MAE: 0.2842
+   Test Accuracy (±5%): 53.66%
+   Model saved to: C:\Users\garza\Documents\Hackahuates\ConsumptionPredictionv2\pipeline\04_model_training\outputs_producto_level\xgboost_savoury_snacks.pkl
+
+3. Alcohol
+   Train R²: 0.9999
+   Test R²:  0.9162
+   Test MAE: 0.3336
+   Test Accuracy (±5%): 46.21%
+   Model saved to: C:\Users\garza\Documents\Hackahuates\ConsumptionPredictionv2\pipeline\04_model_training\outputs_producto_level\xgboost_alcohol.pkl
+
+4. Hot Drink
+   Train R²: 0.9996
+   Test R²:  0.9163
+   Test MAE: 0.2398
+   Test Accuracy (±5%): 55.63%
+   Model saved to: C:\Users\garza\Documents\Hackahuates\ConsumptionPredictionv2\pipeline\04_model_training\outputs_producto_level\xgboost_hot_drink.pkl
+
+5. Sweet Snacks
+   Train R²: 0.9997
+   Test R²:  0.9440
+   Test MAE: 0.1856
+   Test Accuracy (±5%): 52.79%
+   Model saved to: C:\Users\garza\Documents\Hackahuates\ConsumptionPredictionv2\pipeline\04_model_training\outputs_producto_level\xgboost_sweet_snacks.pkl
+
+6. Fresh Food
+   Train R²: 0.9997
+   Test R²:  0.9213
+   Test MAE: 0.3105
+   Test Accuracy (±5%): 35.62%
+   Model saved to: C:\Users\garza\Documents\Hackahuates\ConsumptionPredictionv2\pipeline\04_model_training\outputs_producto_level\xgboost_fresh_food.pkl
+
+======================================================================
+PRODUCT-LEVEL API RESPONSE STRUCTURE
+======================================================================
+
+{
+  "PREDICCIÓN_POR_PRODUCTO": {
+    "cold drink": {
+      "predicted_qty": <float>,
+      "confidence_lower": <float>,
+      "confidence_upper": <float>,
+      "recommended_qty": <int>,
+      "stockout_risk": <float>,
+      "model_accuracy": 71.52%
+    },
+    "savoury snacks": {
+      "predicted_qty": <float>,
+      "confidence_lower": <float>,
+      "confidence_upper": <float>,
+      "recommended_qty": <int>,
+      "stockout_risk": <float>,
+      "model_accuracy": 53.66%
+    },
+    "alcohol": {
+      "predicted_qty": <float>,
+      "confidence_lower": <float>,
+      "confidence_upper": <float>,
+      "recommended_qty": <int>,
+      "stockout_risk": <float>,
+      "model_accuracy": 46.21%
+    },
+    "hot drink": {
+      "predicted_qty": <float>,
+      "confidence_lower": <float>,
+      "confidence_upper": <float>,
+      "recommended_qty": <int>,
+      "stockout_risk": <float>,
+      "model_accuracy": 55.63%
+    },
+    "sweet snacks": {
+      "predicted_qty": <float>,
+      "confidence_lower": <float>,
+      "confidence_upper": <float>,
+      "recommended_qty": <int>,
+      "stockout_risk": <float>,
+      "model_accuracy": 52.79%
+    },
+    "fresh food": {
+      "predicted_qty": <float>,
+      "confidence_lower": <float>,
+      "confidence_upper": <float>,
+      "recommended_qty": <int>,
+      "stockout_risk": <float>,
+      "model_accuracy": 35.62%
+    },
+    "TOTAL": {
+      "total_recommended_qty": <int>,
+      "breakdown": "<category1: qty1> + <category2: qty2> + ..."
+    }
+  },
+  "INFORMACIÓN_DE_NEGOCIO": {
+    "expected_waste_units": <float>,
+    "expected_waste_cost": <float>,
+    "estimated_savings_vs_total_approach": <float>,
+    "efficiency_improvement": "<percentage>%"
+  }
+}

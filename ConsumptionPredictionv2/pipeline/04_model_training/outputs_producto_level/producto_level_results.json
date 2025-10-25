@@ -1,0 +1,134 @@
+{
+  "Cold Drink": {
+    "train": {
+      "r2": 0.9998894355575331,
+      "mae": 0.03280126251141922,
+      "rmse": 0.04948880077855656,
+      "accuracy_within_5pct": 86.72075149444919
+    },
+    "test": {
+      "r2": 0.9714897333085395,
+      "mae": 0.2566289546260816,
+      "rmse": 0.7876650634945757,
+      "accuracy_within_5pct": 71.522124698713
+    },
+    "model_path": "C:\\Users\\garza\\Documents\\Hackahuates\\ConsumptionPredictionv2\\pipeline\\04_model_training\\outputs_producto_level\\xgboost_cold_drink.pkl",
+    "n_trees": 1000,
+    "target_distribution": {
+      "train_mean": 4.959623185311699,
+      "train_std": 4.706575013692519,
+      "test_mean": 4.954249852198827,
+      "test_std": 4.6649380503144
+    }
+  },
+  "Savoury Snacks": {
+    "train": {
+      "r2": 0.9998861405507907,
+      "mae": 0.03392020904718586,
+      "rmse": 0.05144519020126621,
+      "accuracy_within_5pct": 71.49871904355251
+    },
+    "test": {
+      "r2": 0.9699622072527763,
+      "mae": 0.2842414015659379,
+      "rmse": 0.818318207444192,
+      "accuracy_within_5pct": 53.66319523398063
+    },
+    "model_path": "C:\\Users\\garza\\Documents\\Hackahuates\\ConsumptionPredictionv2\\pipeline\\04_model_training\\outputs_producto_level\\xgboost_savoury_snacks.pkl",
+    "n_trees": 1000,
+    "target_distribution": {
+      "train_mean": 3.905369342442357,
+      "train_std": 4.821320838643135,
+      "test_mean": 3.878461958251853,
+      "test_std": 4.721642961234911
+    }
+  },
+  "Alcohol": {
+    "train": {
+      "r2": 0.9998982735473667,
+      "mae": 0.03090608433988402,
+      "rmse": 0.047001740937831674,
+      "accuracy_within_5pct": 60.72000426985482
+    },
+    "test": {
+      "r2": 0.9161824950407911,
+      "mae": 0.33359113416675196,
+      "rmse": 1.4301987699221783,
+      "accuracy_within_5pct": 46.214016098958574
+    },
+    "model_path": "C:\\Users\\garza\\Documents\\Hackahuates\\ConsumptionPredictionv2\\pipeline\\04_model_training\\outputs_producto_level\\xgboost_alcohol.pkl",
+    "n_trees": 1000,
+    "target_distribution": {
+      "train_mean": 2.926665243381725,
+      "train_std": 4.660181047765859,
+      "test_mean": 3.0410659875392243,
+      "test_std": 4.940079903162788
+    }
+  },
+  "Hot Drink": {
+    "train": {
+      "r2": 0.9996338774452564,
+      "mae": 0.030042492848277997,
+      "rmse": 0.04483586361945487,
+      "accuracy_within_5pct": 74.42090093936807
+    },
+    "test": {
+      "r2": 0.9163357972960771,
+      "mae": 0.23979491967944527,
+      "rmse": 0.6788618347048245,
+      "accuracy_within_5pct": 55.63236163536314
+    },
+    "model_path": "C:\\Users\\garza\\Documents\\Hackahuates\\ConsumptionPredictionv2\\pipeline\\04_model_training\\outputs_producto_level\\xgboost_hot_drink.pkl",
+    "n_trees": 1000,
+    "target_distribution": {
+      "train_mean": 2.4233827924850555,
+      "train_std": 2.3432471225628717,
+      "test_mean": 2.4354222565828367,
+      "test_std": 2.3470183918854066
+    }
+  },
+  "Sweet Snacks": {
+    "train": {
+      "r2": 0.9996941028180757,
+      "mae": 0.02922235125703368,
+      "rmse": 0.043785333030903095,
+      "accuracy_within_5pct": 63.82899231426131
+    },
+    "test": {
+      "r2": 0.9439897058051295,
+      "mae": 0.18564612849716777,
+      "rmse": 0.5784370947994296,
+      "accuracy_within_5pct": 52.78548365091636
+    },
+    "model_path": "C:\\Users\\garza\\Documents\\Hackahuates\\ConsumptionPredictionv2\\pipeline\\04_model_training\\outputs_producto_level\\xgboost_sweet_snacks.pkl",
+    "n_trees": 1000,
+    "target_distribution": {
+      "train_mean": 1.9813727583262168,
+      "train_std": 2.503494918723268,
+      "test_mean": 1.9385601891855018,
+      "test_std": 2.4441460126698558
+    }
+  },
+  "Fresh Food": {
+    "train": {
+      "r2": 0.9997351925089651,
+      "mae": 0.027250215943343384,
+      "rmse": 0.04192213352494647,
+      "accuracy_within_5pct": 57.301451750640474
+    },
+    "test": {
+      "r2": 0.9212530014804515,
+      "mae": 0.31052555128710696,
+      "rmse": 0.7144088945578911,
+      "accuracy_within_5pct": 35.62463049706672
+    },
+    "model_path": "C:\\Users\\garza\\Documents\\Hackahuates\\ConsumptionPredictionv2\\pipeline\\04_model_training\\outputs_producto_level\\xgboost_fresh_food.pkl",
+    "n_trees": 1000,
+    "target_distribution": {
+      "train_mean": 1.970724807856533,
+      "train_std": 2.5762264727389943,
+      "test_mean": 1.9433807812997408,
+      "test_std": 2.545861573228775
+    }
+  }
+}

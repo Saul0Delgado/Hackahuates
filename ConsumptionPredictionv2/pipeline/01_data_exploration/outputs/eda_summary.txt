@@ -1,0 +1,77 @@
+EDA SUMMARY - 2025-10-25 12:53:19.863672
+======================================================================
+total_transactions: 1332204
+total_unique_flights: 99857
+unique_items: 171
+unique_categories: 15
+unique_routes: 502
+unique_warehouses: 4
+avg_transactions_per_flight: 13.341117798451785
+avg_passenger_count: 168.99732848722869
+stockout_rate_percent: 14.077004671495308
+date_range: 2025-01-01 to 2025-08-30
+
+
+RECOMMENDED FEATURES FOR ENGINEERING (Updated from EDA):
+
+1. TEMPORAL FEATURES (7):
+   - day_of_week: Strong weekly patterns observed
+   - month, quarter, season: Seasonal consumption variations
+   - is_weekend: Different patterns on weekends
+   - is_holiday: Holiday effects
+   - days_since_year_start
+
+2. ROUTE FEATURES (6):
+   - origin, destination: Geographic patterns
+   - route_pair: Origin-destination interaction
+   - route_distance: Can estimate from IATA codes
+   - is_international: Short-haul vs international
+   - is_hub_route: High-traffic routes show patterns
+
+3. FLIGHT/PASSENGER FEATURES (5):
+   - passenger_count: Strong correlation with sales
+   - passenger_count_normalized: Per-aircraft-capacity
+   - booked_utilization_ratio: Demand signal
+   - flight_duration_category: Long-haul vs short-haul
+   - departure_time_category: Morning, afternoon, evening
+
+4. HISTORICAL AGGREGATIONS (20):
+   - Rolling averages (7-day, 30-day, 90-day) by route
+   - Rolling averages by warehouse
+   - Historical consumption by category
+   - Historical stockout rates
+   - Seasonal indices (normalized by month/week)
+   - Trend indicators (is consumption increasing/decreasing?)
+
+5. WAREHOUSE FEATURES (4):
+   - warehouse_location: Encoding warehouse patterns
+   - warehouse_avg_sales: Warehouse capacity/efficiency
+   - warehouse_stockout_history: Warehouse reliability
+   - inventory_level_category: Estimated stock levels
+
+6. PRODUCT/CATEGORY FEATURES (8):
+   - top_category_proportion: What dominates this flight?
+   - category_diversity_index: Variety of products
+   - category_historical_rate: Category consumption rates
+   - category_seasonality: Category x season effects
+   - category_warehouse_affinity: Which categories in which warehouses
+
+7. INTERACTION FEATURES (8):
+   - route x season: Route-specific seasonality
+   - warehouse x category: Warehouse expertise in categories
+   - passenger_count x category: Passenger type effects
+   - day_of_week x route: Route-specific weekly effects
+
+IMMEDIATE ACTIONS:
+
+1. [OK] COMPLETE: Dataset structure and quality verified
+2. NEXT: Aggregate transaction-level > flight-level data
+   - Sum SALES and LOST SALES per FLIGHT KEY
+   - Create binary targets: shortage_occurred (0/1)
+3. NEXT: Implement feature engineering pipeline
+   - All 58+ features listed above
+4. NEXT: Train XGBoost, Random Forest, Neural Network
+5. NEXT: Evaluate and compare models
+
+KEY METRIC TO TRACK:
+>> Can we reduce stockout rate from {summary['stockout_rate_percent']:.1f}% to <5%?
