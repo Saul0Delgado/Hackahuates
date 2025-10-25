@@ -48,3 +48,4 @@ start-all.bat
 start-all.sh
 
 .claude
+/.venv

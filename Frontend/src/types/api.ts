@@ -10,27 +10,27 @@
 // ============================================================================
 
 export interface PredictionRequest {
-  passenger_count: number;
-  product_id: number;
-  flight_type: string;
-  service_type: string;
-  origin: string;
-  unit_cost?: number;
-  flight_date?: string;
+  passenger_count: number
+  product_id: number
+  flight_type: string
+  service_type: string
+  origin: string
+  unit_cost?: number
+  flight_date?: string
 }
 
 export interface BatchPredictionRequest {
-  passenger_count: number;
-  flight_type: string;
+  passenger_count: number
+  flight_type: string
   /**
    * Service type: Must be one of:
    * - "Retail" (standard service, ~67 units avg consumption)
    * - "Pick & Pack" (packaged service, ~107 units avg consumption)
    */
-  service_type: string;
-  origin: string;
-  flight_date?: string;
-  products: number[];
+  service_type: string
+  origin: string
+  flight_date?: string
+  products: number[]
 }
 
 // ============================================================================
@@ -53,13 +53,13 @@ export interface BatchPredictionRequest {
  * @field model_used - Name of the model used ("xgboost", "ensemble", "random_forest")
  */
 export interface PredictionResponse {
-  predicted_quantity: number;
-  lower_bound: number;
-  upper_bound: number;
-  confidence_score: number; // This is Model R², not interval confidence
-  expected_waste: number; // Calculated from historical return rates
-  expected_shortage: number;
-  model_used: string;
+  predicted_quantity: number
+  lower_bound: number
+  upper_bound: number
+  confidence_score: number // This is Model R², not interval confidence
+  expected_waste: number // Calculated from historical return rates
+  expected_shortage: number
+  model_used: string
 }
 
 // ============================================================================
@@ -74,13 +74,13 @@ export interface PredictionResponse {
  * @field expected_shortage - Probability of shortage (0.0 = no risk, 0.1 = 10% risk if predicted < passengers)
  */
 export interface ProductPrediction {
-  product_id: number;
-  predicted_quantity: number;
-  lower_bound: number;
-  upper_bound: number;
-  confidence_score: number; // Model R² (XGBoost: 0.9898)
-  expected_waste: number; // Quantity × historical_return_rate
-  expected_shortage: number; // 0.0 or 0.1 (probability of shortage)
+  product_id: number
+  predicted_quantity: number
+  lower_bound: number
+  upper_bound: number
+  confidence_score: number // Model R² (XGBoost: 0.9898)
+  expected_waste: number // Quantity × historical_return_rate
+  expected_shortage: number // 0.0 or 0.1 (probability of shortage)
 }
 
 /**
@@ -99,14 +99,14 @@ export interface ProductPrediction {
  * @field generated_at - ISO timestamp when prediction was made
  */
 export interface BatchPredictionResponse {
-  flight_id: string;
-  passenger_count: number;
-  total_predicted_quantity: number; // Sum of all product predictions
-  total_predicted_cost: number; // Sum of all product costs
-  total_predicted_waste_cost: number; // Sum of (waste × unit_cost)
-  predictions: ProductPrediction[];
-  model_used: string;
-  generated_at: string; // ISO datetime
+  flight_id: string
+  passenger_count: number
+  total_predicted_quantity: number // Sum of all product predictions
+  total_predicted_cost: number // Sum of all product costs
+  total_predicted_waste_cost: number // Sum of (waste × unit_cost)
+  predictions: ProductPrediction[]
+  model_used: string
+  generated_at: string // ISO datetime
 }
 
 // ============================================================================
@@ -120,37 +120,37 @@ export interface BatchPredictionResponse {
  * @field business_metrics - Operationally relevant metrics
  */
 export interface ModelMetrics {
-  model: string;
-  training_date: string;
+  model: string
+  training_date: string
   ml_metrics: {
-    MAE: number; // Mean Absolute Error
-    RMSE: number; // Root Mean Squared Error
-    MAPE: number; // Mean Absolute Percentage Error
-    R2: number; // R² = variance explained (0.9898 for XGBoost)
-  };
+    MAE: number // Mean Absolute Error
+    RMSE: number // Root Mean Squared Error
+    MAPE: number // Mean Absolute Percentage Error
+    R2: number // R² = variance explained (0.9898 for XGBoost)
+  }
   business_metrics: {
-    waste_rate_percent: number; // % of prepared items that are returned
-    shortage_rate_percent: number; // % of cases with insufficient quantity
-    accuracy_rate_percent: number; // Overall prediction accuracy
-    avg_waste_qty: number; // Average units wasted per product
-  };
+    waste_rate_percent: number // % of prepared items that are returned
+    shortage_rate_percent: number // % of cases with insufficient quantity
+    accuracy_rate_percent: number // Overall prediction accuracy
+    avg_waste_qty: number // Average units wasted per product
+  }
 }
 
 /**
  * Feature importance for model interpretation
  */
 export interface FeatureImportance {
-  feature: string;
-  importance: number;
+  feature: string
+  importance: number
 }
 
 /**
  * Health check response
  */
 export interface HealthResponse {
-  status: string;
-  models_available: string[];
-  active_model: string;
+  status: string
+  models_available: string[]
+  active_model: string
 }
 
 // ============================================================================

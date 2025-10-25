@@ -1,64 +1,77 @@
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
-import { apiService } from '../services/api';
-import type { ModelMetrics, FeatureImportance } from '../types/api';
+"use client"
+
+import { useEffect, useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
+import { Badge } from "./ui/badge"
+import { apiService } from "../services/api"
+import type { ModelMetrics, FeatureImportance } from "../types/api"
+import { Target, TrendingUp, AlertCircle, Loader2 } from "lucide-react"
 
 export function ModelMetricsDashboard() {
-  const [metrics, setMetrics] = useState<ModelMetrics | null>(null);
-  const [features, setFeatures] = useState<FeatureImportance[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [metrics, setMetrics] = useState<ModelMetrics | null>(null)
+  const [features, setFeatures] = useState<FeatureImportance[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    loadMetrics();
-  }, []);
+    loadMetrics()
+  }, [])
 
   const loadMetrics = async () => {
-    try {
-      setLoading(true);
-      const [metricsData, featuresData] = await Promise.all([
-        apiService.getModelMetrics(),
-        apiService.getFeatureImportance(10),
-      ]);
-      setMetrics(metricsData);
-      setFeatures(featuresData);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al cargar métricas');
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true)
+    const [metricsData, featuresData] = await Promise.all([
+      apiService.getModelMetrics(),
+      apiService.getFeatureImportance(10),
+    ])
+    setMetrics(metricsData)
+    
+    // --- PASO CLAVE DE DEPURACIÓN ---
+    // ...
+    console.log("Datos recibidos para features:", featuresData) 
+
+    // Guardamos directamente el array de features en el estado
+    setFeatures(featuresData);
+
+    setError(null)
+    // ...
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "Error al cargar métricas")
+  } finally {
+    setLoading(false)
+  }
+}
 
   if (loading) {
     return (
       <Card>
-        <CardContent className="p-8 text-center text-muted-foreground">
-          Cargando métricas del modelo...
+        <CardContent className="p-8 text-center text-muted-foreground" aria-live="polite">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" aria-hidden="true" />
+          <p>Cargando métricas del modelo...</p>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   if (error) {
     return (
       <Card>
-        <CardContent className="p-8 text-center text-destructive">
-          Error: {error}
+        <CardContent className="p-8 text-center text-destructive" role="alert" aria-live="assertive">
+          <AlertCircle className="w-8 h-8 mx-auto mb-2" aria-hidden="true" />
+          <p>Error: {error}</p>
         </CardContent>
       </Card>
-    );
+    )
   }
 
-  if (!metrics) return null;
+  if (!metrics) return null
 
   // Safe access with default values
-  const mlMetrics = metrics.ml_metrics || {};
-  const businessMetrics = metrics.business_metrics || {};
+  const mlMetrics = metrics.ml_metrics || {}
+  const businessMetrics = metrics.business_metrics || {}
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" role="region" aria-label="Panel de métricas del modelo">
       {/* Model Info */}
       <Card>
         <CardHeader>
@@ -66,10 +79,10 @@ export function ModelMetricsDashboard() {
             <div>
               <CardTitle>Métricas del Modelo</CardTitle>
               <CardDescription>
-                Modelo: {metrics.model || 'N/A'} | Entrenado: {metrics.training_date || 'N/A'}
+                Modelo: {metrics.model || "N/A"} | Entrenado: {metrics.training_date || "N/A"}
               </CardDescription>
             </div>
-            <Badge variant="default" className="text-lg px-4 py-2">
+            <Badge variant="default" className="text-lg px-4 py-2" aria-label="Estado del modelo: Activo">
               Activo
             </Badge>
           </div>
@@ -83,7 +96,7 @@ export function ModelMetricsDashboard() {
           <CardDescription>Rendimiento técnico del modelo</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4" role="list" aria-label="Métricas de machine learning">
             <MetricCard
               title="MAE"
               value={(mlMetrics.MAE || 0).toFixed(2)}
@@ -104,7 +117,7 @@ export function ModelMetricsDashboard() {
             />
             <MetricCard
               title="R²"
-              value={((mlMetrics.R2 || 0) * 100).toFixed(2) + '%'}
+              value={((mlMetrics.R2 || 0) * 100).toFixed(2) + "%"}
               description="Coeficiente de Determinación"
               color="green"
             />
@@ -119,7 +132,7 @@ export function ModelMetricsDashboard() {
           <CardDescription>Impacto operacional y financiero</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4" role="list" aria-label="Métricas de negocio">
             <MetricCard
               title="Desperdicio"
               value={`${(businessMetrics.waste_rate_percent || 0).toFixed(2)}%`}
@@ -153,26 +166,31 @@ export function ModelMetricsDashboard() {
       {/* Feature Importance */}
       <Card>
         <CardHeader>
-          <CardTitle>Importancia de Features</CardTitle>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" aria-hidden="true" />
+            <CardTitle>Importancia de Features</CardTitle>
+          </div>
           <CardDescription>Top 10 características más influyentes en las predicciones</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-3" role="list" aria-label="Lista de importancia de características">
             {features.map((feature, index) => (
-              <div key={feature.feature} className="space-y-1">
+              <div key={feature.feature} className="space-y-1" role="listitem">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium">
                     {index + 1}. {feature.feature}
                   </span>
-                  <span className="text-muted-foreground">
-                    {(feature.importance * 100).toFixed(1)}%
-                  </span>
+                  <span className="text-muted-foreground">{(feature.importance * 100).toFixed(1)}%</span>
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all"
-                    style={{ width: `${feature.importance * 100}%` }}
-                  />
+                <div
+                  className="h-2 bg-muted rounded-full overflow-hidden"
+                  role="progressbar"
+                  aria-valuenow={feature.importance * 100}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`Importancia de ${feature.feature}: ${(feature.importance * 100).toFixed(1)}%`}
+                >
+                  <div className="h-full bg-primary transition-all" style={{ width: `${feature.importance * 100}%` }} />
                 </div>
               </div>
             ))}
@@ -181,60 +199,67 @@ export function ModelMetricsDashboard() {
       </Card>
 
       {/* Performance Highlights */}
-      <Card className="bg-gradient-to-br from-green-500/10 to-blue-500/10 border-green-500/20">
+      <Card className="border-primary/20 bg-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            🎯 Resumen de Desempeño
+            <Target className="w-5 h-5 text-primary" aria-hidden="true" />
+            Resumen de Desempeño
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-3xl font-bold text-green-600 dark:text-green-400">95%</p>
+          <div
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center"
+            role="list"
+            aria-label="Resumen de desempeño"
+          >
+            <div role="listitem">
+              <p className="text-3xl font-bold text-primary">95%</p>
               <p className="text-sm text-muted-foreground">Reducción de Desperdicio vs Baseline</p>
             </div>
-            <div>
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">98.98%</p>
+            <div role="listitem">
+              <p className="text-3xl font-bold text-primary">98.98%</p>
               <p className="text-sm text-muted-foreground">Varianza Explicada (R²)</p>
             </div>
-            <div>
-              <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">&lt;10ms</p>
+            <div role="listitem">
+              <p className="text-3xl font-bold text-primary">&lt;10ms</p>
               <p className="text-sm text-muted-foreground">Tiempo de Inferencia</p>
             </div>
           </div>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
 
 interface MetricCardProps {
-  title: string;
-  value: string;
-  description: string;
-  color: 'blue' | 'purple' | 'orange' | 'green' | 'red' | 'yellow';
-  highlight?: boolean;
+  title: string
+  value: string
+  description: string
+  color: "blue" | "purple" | "orange" | "green" | "red" | "yellow"
+  highlight?: boolean
 }
 
 function MetricCard({ title, value, description, color, highlight }: MetricCardProps) {
   const colorClasses = {
-    blue: 'bg-blue-500/10 border-blue-500/20',
-    purple: 'bg-purple-500/10 border-purple-500/20',
-    orange: 'bg-orange-500/10 border-orange-500/20',
-    green: 'bg-green-500/10 border-green-500/20',
-    red: 'bg-red-500/10 border-red-500/20',
-    yellow: 'bg-yellow-500/10 border-yellow-500/20',
-  };
+    blue: "bg-primary/10 border-primary/20",
+    purple: "bg-primary/10 border-primary/20",
+    orange: "bg-accent/10 border-accent/20",
+    green: "bg-primary/10 border-primary/20",
+    red: "bg-destructive/10 border-destructive/20",
+    yellow: "bg-accent/10 border-accent/20",
+  }
 
   return (
     <div
-      className={`p-4 rounded-lg border-2 ${colorClasses[color]} ${
-        highlight ? 'ring-2 ring-green-500/50' : ''
+      className={`p-4 rounded-lg border-2 transition-all ${colorClasses[color]} ${
+        highlight ? "ring-2 ring-primary/50" : ""
       }`}
+      role="listitem"
+      aria-label={`${title}: ${value} - ${description}`}
     >
       <p className="text-sm text-muted-foreground mb-1">{title}</p>
       <p className="text-2xl font-bold mb-1">{value}</p>
       <p className="text-xs text-muted-foreground">{description}</p>
     </div>
-  );
+  )
 }
