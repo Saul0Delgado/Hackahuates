@@ -1,0 +1,234 @@
+[
+  {
+    "file": "Docs\\Hackatlon Consumption and Estimation - Gategroup Dataset 1 de 2.xlsx",
+    "sheets": [
+      {
+        "name": "Instrucciones",
+        "rows": 2,
+        "columns": 1,
+        "column_names": [
+          "Please create a combination de model, process and LLMs to get and accuracy on 2% of error with this two times series. For plant 1 (flights and passengers) for plant 2 just flights. The system should autoadjust."
+        ],
+        "column_types": {
+          "Please create a combination de model, process and LLMs to get and accuracy on 2% of error with this two times series. For plant 1 (flights and passengers) for plant 2 just flights. The system should autoadjust.": "object"
+        },
+        "null_counts": {
+          "Please create a combination de model, process and LLMs to get and accuracy on 2% of error with this two times series. For plant 1 (flights and passengers) for plant 2 just flights. The system should autoadjust.": 1
+        },
+        "unique_counts": {
+          "Please create a combination de model, process and LLMs to get and accuracy on 2% of error with this two times series. For plant 1 (flights and passengers) for plant 2 just flights. The system should autoadjust.": 1
+        },
+        "csv_file": "Instrucciones.csv"
+      },
+      {
+        "name": "Plant 1",
+        "rows": 845,
+        "columns": 4,
+        "column_names": [
+          "day",
+          "flights",
+          "passengers",
+          "max capacity"
+        ],
+        "column_types": {
+          "day": "int64",
+          "flights": "int64",
+          "passengers": "int64",
+          "max capacity": "int64"
+        },
+        "null_counts": {
+          "day": 0,
+          "flights": 0,
+          "passengers": 0,
+          "max capacity": 0
+        },
+        "unique_counts": {
+          "day": 845,
+          "flights": 140,
+          "passengers": 833,
+          "max capacity": 828
+        },
+        "csv_file": "Plant_1.csv"
+      },
+      {
+        "name": "Plant 2",
+        "rows": 973,
+        "columns": 2,
+        "column_names": [
+          "day",
+          "flights"
+        ],
+        "column_types": {
+          "day": "datetime64[ns]",
+          "flights": "int64"
+        },
+        "null_counts": {
+          "day": 0,
+          "flights": 0
+        },
+        "unique_counts": {
+          "day": 973,
+          "flights": 23
+        },
+        "csv_file": "Plant_2.csv"
+      }
+    ]
+  },
+  {
+    "file": "Docs\\HackMTY2025_ChallengeDimensions\\01_ExpirationDateManagement\\[HackMTY2025]_ExpirationDateManagement_Dataset_v1.xlsx",
+    "sheets": [
+      {
+        "name": "Sheet1",
+        "rows": 150,
+        "columns": 6,
+        "column_names": [
+          "Product_ID",
+          "Product_Name",
+          "Weight_or_Volume",
+          "LOT_Number",
+          "Expiry_Date",
+          "Quantity"
+        ],
+        "column_types": {
+          "Product_ID": "object",
+          "Product_Name": "object",
+          "Weight_or_Volume": "object",
+          "LOT_Number": "object",
+          "Expiry_Date": "object",
+          "Quantity": "int64"
+        },
+        "null_counts": {
+          "Product_ID": 0,
+          "Product_Name": 0,
+          "Weight_or_Volume": 0,
+          "LOT_Number": 0,
+          "Expiry_Date": 0,
+          "Quantity": 0
+        },
+        "unique_counts": {
+          "Product_ID": 10,
+          "Product_Name": 10,
+          "Weight_or_Volume": 6,
+          "LOT_Number": 126,
+          "Expiry_Date": 78,
+          "Quantity": 131
+        },
+        "csv_file": "Sheet1.csv"
+      }
+    ]
+  },
+  {
+    "file": "Docs\\HackMTY2025_ChallengeDimensions\\02_ConsumptionPrediction\\[HackMTY2025]_ConsumptionPrediction_Dataset_v1.xlsx",
+    "sheets": [
+      {
+        "name": "Sheet1",
+        "rows": 792,
+        "columns": 13,
+        "column_names": [
+          "Flight_ID",
+          "Origin",
+          "Date",
+          "Flight_Type",
+          "Service_Type",
+          "Passenger_Count",
+          "Product_ID",
+          "Product_Name",
+          "Standard_Specification_Qty",
+          "Quantity_Returned",
+          "Quantity_Consumed",
+          "Unit_Cost",
+          "Crew_Feedback"
+        ],
+        "column_types": {
+          "Flight_ID": "object",
+          "Origin": "object",
+          "Date": "object",
+          "Flight_Type": "object",
+          "Service_Type": "object",
+          "Passenger_Count": "int64",
+          "Product_ID": "object",
+          "Product_Name": "object",
+          "Standard_Specification_Qty": "int64",
+          "Quantity_Returned": "int64",
+          "Quantity_Consumed": "int64",
+          "Unit_Cost": "float64",
+          "Crew_Feedback": "object"
+        },
+        "null_counts": {
+          "Flight_ID": 0,
+          "Origin": 0,
+          "Date": 0,
+          "Flight_Type": 0,
+          "Service_Type": 0,
+          "Passenger_Count": 0,
+          "Product_ID": 0,
+          "Product_Name": 0,
+          "Standard_Specification_Qty": 0,
+          "Quantity_Returned": 0,
+          "Quantity_Consumed": 0,
+          "Unit_Cost": 0,
+          "Crew_Feedback": 723
+        },
+        "unique_counts": {
+          "Flight_ID": 144,
+          "Origin": 6,
+          "Date": 12,
+          "Flight_Type": 3,
+          "Service_Type": 2,
+          "Passenger_Count": 96,
+          "Product_ID": 10,
+          "Product_Name": 10,
+          "Standard_Specification_Qty": 223,
+          "Quantity_Returned": 103,
+          "Quantity_Consumed": 175,
+          "Unit_Cost": 10,
+          "Crew_Feedback": 3
+        },
+        "csv_file": "Sheet1.csv"
+      }
+    ]
+  },
+  {
+    "file": "Docs\\HackMTY2025_ChallengeDimensions\\03_ProductivityEstimation\\[HackMTY2025]_ProductivityEstimation_Dataset_v1.xlsx",
+    "sheets": [
+      {
+        "name": "Sheet1",
+        "rows": 100,
+        "columns": 6,
+        "column_names": [
+          "Drawer_ID",
+          "Flight_Type",
+          "Drawer_Category",
+          "Total_Items",
+          "Unique_Item_Types",
+          "Item_List"
+        ],
+        "column_types": {
+          "Drawer_ID": "object",
+          "Flight_Type": "object",
+          "Drawer_Category": "object",
+          "Total_Items": "int64",
+          "Unique_Item_Types": "int64",
+          "Item_List": "object"
+        },
+        "null_counts": {
+          "Drawer_ID": 0,
+          "Flight_Type": 0,
+          "Drawer_Category": 0,
+          "Total_Items": 0,
+          "Unique_Item_Types": 0,
+          "Item_List": 0
+        },
+        "unique_counts": {
+          "Drawer_ID": 100,
+          "Flight_Type": 2,
+          "Drawer_Category": 4,
+          "Total_Items": 33,
+          "Unique_Item_Types": 12,
+          "Item_List": 100
+        },
+        "csv_file": "Sheet1.csv"
+      }
+    ]
+  }
+]

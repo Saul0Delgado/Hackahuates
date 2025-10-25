@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --version)",
+      "Bash(npm install -D tailwindcss postcss autoprefixer)",
+      "Bash(npx tailwindcss init -p)",
+      "Bash(node node_modules/tailwindcss/lib/cli.js init -p)",
+      "Bash(npm install class-variance-authority clsx tailwind-merge lucide-react)",
+      "Bash(npm run build)",
+      "Bash(npm install -D @tailwindcss/postcss)",
+      "Bash(npm run dev --help)",
+      "Bash(npm uninstall @tailwindcss/postcss)",
+      "Bash(npm install -D tailwindcss@3.4.15 postcss autoprefixer)",
+      "Bash(timeout 5 sleep 5)",
+      "Bash(chmod +x E:/Hackathons/Hackahuates/start-all.sh)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
