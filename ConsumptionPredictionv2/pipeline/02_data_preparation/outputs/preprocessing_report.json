@@ -1,0 +1,25 @@
+{
+  "timestamp": "2025-10-25T13:33:25.556293",
+  "original_rows": 1306043,
+  "processed_flights": 81450,
+  "data_retention_pct": 6.23639497321298,
+  "processed_stats": {
+    "consumption": {
+      "mean": 19.774917127071824,
+      "std": 18.486915493552374,
+      "min": 1.0,
+      "max": 540.0
+    },
+    "passengers": {
+      "mean": 157.46435850214857,
+      "std": 62.46071446703238,
+      "min": 3,
+      "max": 365
+    },
+    "stockout_rate": {
+      "mean": 0.013111848410092245,
+      "flights_with_stockouts": 1717,
+      "pct_with_stockouts": 2.108041743400859
+    }
+  }
+}

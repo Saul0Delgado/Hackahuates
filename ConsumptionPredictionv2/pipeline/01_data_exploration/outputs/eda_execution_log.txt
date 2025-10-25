@@ -1,0 +1,351 @@
+Data directory: C:\Users\garza\Documents\Hackahuates\ConsumptionPredictionv2\data\raw
+Data directory exists: True
+
+Starting EDA Pipeline at 2025-10-25 12:50:46.734945
+======================================================================
+======================================================================
+LOADING DATASETS
+======================================================================
+
+Found 2 CSV files:
+  - result_hack 3.2 REDUCED A.csv
+  - result_hack 3.2 REDUCED b.csv
+
+Loading: result_hack 3.2 REDUCED A.csv
+  Rows: 615,791
+  Columns: 17
+  Memory: 439.14 MB
+
+Loading: result_hack 3.2 REDUCED b.csv
+  Rows: 716,413
+  Columns: 17
+  Memory: 510.77 MB
+
+Total datasets loaded: 2
+
+======================================================================
+SCHEMA ANALYSIS
+======================================================================
+
+result_hack 3.2 REDUCED A:
+Column               Type            Missing    Unique    
+-------------------------------------------------------
+FLIGHT KEY           object          128        46654     
+PASSENGERS           int64           0          359       
+NOMBRE DE AEROLINEA  object          0          1         
+FECHA                object          0          120       
+ORIGEN               object          1616       106       
+DESTINO              object          1616       107       
+FLIGHT NO            float64         128        692       
+DEPARTUTE LOCAL TIME object          531        38325     
+ARRIVAL LOCAL TIME   object          0          39191     
+SALES                float64         9192       39        
+TYPE TRANSACTION     object          9192       4         
+CATEGORY             object          9215       15        
+SUPERCATEGORY        object          9233       3         
+LOST SALES           int64           0          25        
+ITEM CODE            float64         9233       165       
+CURRENCY             object          0          1         
+WAREHOUSE            object          8166       4         
+
+result_hack 3.2 REDUCED b:
+Column               Type            Missing    Unique    
+-------------------------------------------------------
+FLIGHT KEY           object          196        53203     
+PASSENGERS           int64           0          357       
+NOMBRE DE AEROLINEA  object          0          1         
+FECHA                object          0          122       
+ORIGEN               object          0          117       
+DESTINO              object          0          123       
+FLIGHT NO            float64         196        648       
+DEPARTUTE LOCAL TIME object          11259      43019     
+ARRIVAL LOCAL TIME   object          0          43712     
+SALES                float64         9222       47        
+TYPE TRANSACTION     object          9222       4         
+CATEGORY             object          9257       14        
+SUPERCATEGORY        object          9257       3         
+LOST SALES           int64           0          25        
+ITEM CODE            float64         9257       142       
+CURRENCY             object          0          1         
+WAREHOUSE            object          7933       4         
+
+======================================================================
+TARGET VARIABLE ANALYSIS: SALES (CONSUMPTION)
+======================================================================
+
+Statistics:
+  Mean: 1.2208
+  Median: 1.0000
+  Std Dev: 0.7679
+  Min: -15.0000
+  Max: 200.0000
+  Q1: 1.0000
+  Q3: 1.0000
+
+Zero sales: 162 (0.01%)
+Negative sales: 7,438 (0.56%)
+
+======================================================================
+CRITICAL PROBLEM: LOST SALES (STOCKOUTS)
+======================================================================
+
+result_hack 3.2 REDUCED A:
+  Total Sales: 738,488
+  Total Lost Sales: 143,207
+  Stockout Rate: 16.24%
+  Transactions with stockouts: 35,487
+
+result_hack 3.2 REDUCED b:
+  Total Sales: 865,385
+  Total Lost Sales: 119,560
+  Stockout Rate: 12.14%
+  Transactions with stockouts: 40,342
+
+======================================================================
+CATEGORY ANALYSIS
+======================================================================
+
+Category Performance:
+                    Total Sales  Avg Sales   Count  Total Lost  Stockout Rate %
+CATEGORY                                                                       
+Cold Drink             429239.0       1.20  356831       66105            13.35
+Savoury Snacks         319480.0       1.14  279672       64841            16.87
+Alcohol                239718.0       1.37  175586       43491            15.36
+Hot Drink              183733.0       1.19  154202       26438            12.58
+Sweet Snacks           152316.0       1.14  133086       26217            14.68
+Fresh Food             150914.0       1.21  124463       25642            14.52
+Logo                    54191.0       2.21   24574           0             0.00
+Hot Food                51265.0       1.17   43655        9910            16.20
+Ladies Fragrance         5721.0       1.04    5481           0             0.00
+Tobacco                  4849.0       1.15    4231           0             0.00
+Gents Fragrance          4764.0       1.04    4571           0             0.00
+Skincare & Make-up       4098.0       1.06    3858           0             0.00
+Accessories              2094.0       1.02    2059           0             0.00
+Confectionery            1243.0       1.02    1215           0             0.00
+Tobacco.                  248.0       1.00     248           0             0.00
+
+======================================================================
+ROUTE ANALYSIS
+======================================================================
+
+Unique routes: 502
+
+Top 15 routes by transaction count:
+         Total Sales  Avg Sales  Count  ...  Avg Passengers  Min Pass  Max Pass
+ROUTE                                   ...                                    
+LIS-LHR      50555.0       1.20  42233  ...          157.76        -3       284
+LHR-LIS      43845.0       1.24  35249  ...          162.94        27       236
+LIS-ORY      39773.0       1.19  33380  ...          143.58        -3       287
+ORY-LIS      34328.0       1.19  28844  ...          149.61        -3       295
+LIS-AMS      29093.0       1.22  23769  ...          147.91        65       215
+LIS-BRU      23805.0       1.19  20051  ...          139.66        42       217
+LIS-FCO      23898.0       1.19  20008  ...          153.91        25       258
+AMS-LIS      24012.0       1.24  19314  ...          136.85        42       239
+LIS-GVA      22012.0       1.19  18442  ...          145.72        44       212
+FCO-LIS      21149.0       1.18  17954  ...          155.71        65       249
+GVA-LIS      21410.0       1.21  17680  ...          147.69        39       212
+LIS-FNC      20846.0       1.18  17674  ...          163.91        -3       298
+LIS-ZRH      21181.0       1.20  17669  ...          141.40        54       210
+ZRH-LIS      20086.0       1.23  16373  ...          143.87        52       220
+BRU-LIS      19333.0       1.22  15911  ...          141.52        27       256
+
+[15 rows x 7 columns]
+
+Origins (top 10):
+        Total Sales  Avg Sales   Count  Avg Passengers
+ORIGEN                                                
+LIS        504930.0       1.20  421640          142.20
+MAD        294531.0       1.26  234422          228.11
+ORY         52203.0       1.18   44170          149.08
+LHR         43845.0       1.24   35249          162.94
+OPO         41055.0       1.19   34376          127.62
+AMS         39459.0       1.26   31439          172.45
+ZRH         34360.0       1.21   28368          150.37
+LGW         32373.0       1.22   26438          141.68
+BRU         28204.0       1.20   23470          148.44
+FCO         27367.0       1.18   23207          161.77
+
+======================================================================
+WAREHOUSE ANALYSIS
+======================================================================
+
+Warehouse Performance:
+                   Total Sales  Avg Sales  ...  Avg Passengers  % of Total
+WAREHOUSE                                  ...                            
+Lisbon                964479.0       1.21  ...          141.94       60.81
+Madrid                546852.0       1.25  ...          225.93       33.28
+Palma de Mallorca      20111.0       1.16  ...          155.30        1.32
+Porto                  72417.0       1.20  ...          127.40        4.58
+
+[4 rows x 6 columns]
+
+======================================================================
+TEMPORAL ANALYSIS
+======================================================================
+
+Daily Statistics:
+  Avg daily sales: 6627.57
+  Avg transactions per day: 5429
+  Date range: 2025-01-01 to 2025-08-30
+
+======================================================================
+PASSENGER & CONSUMPTION ANALYSIS
+======================================================================
+
+Sales per Passenger Analysis:
+  Mean: 0.0078
+  Std Dev: 0.0177
+  Min: -10.0000
+  Max: 0.8491
+
+Passenger Count Distribution:
+  Mean: 169.00
+  Median: 157.00
+  Std Dev: 66.76
+  Min: -3
+  Max: 996
+
+Correlation Matrix:
+                     PASSENGERS     SALES  SALES_PER_PASSENGER
+PASSENGERS             1.000000  0.074261            -0.091488
+SALES                  0.074261  1.000000             0.177545
+SALES_PER_PASSENGER   -0.091488  0.177545             1.000000
+
+======================================================================
+ITEM/SKU ANALYSIS
+======================================================================
+
+Unique items: 171
+
+Top 20 items by transaction count:
+           Total Sales  Avg Sales  Count  Lost Sales Primary Category
+ITEM CODE                                                            
+4724.0         63655.0       1.28  49621       10774        Hot Drink
+4561.0         62221.0       1.34  46356       12306       Cold Drink
+4680.0         55848.0       1.32  42401       10612       Fresh Food
+4557.0         45021.0       1.20  37383       10407       Cold Drink
+4558.0         44285.0       1.21  36514       10345       Cold Drink
+4542.0         54116.0       1.56  34665       11412          Alcohol
+4647.0         42426.0       1.31  32459           0       Cold Drink
+4549.0         34974.0       1.18  29740        9549   Savoury Snacks
+4585.0         30748.0       1.15  26847        7209       Cold Drink
+4568.0         30924.0       1.18  26264        7848     Sweet Snacks
+4586.0         30470.0       1.17  26021        8039   Savoury Snacks
+5017.0         53833.0       2.22  24248           0             Logo
+4634.0         25909.0       1.13  23021        6201       Cold Drink
+4619.0         27456.0       1.25  21967           3       Cold Drink
+4729.0         24607.0       1.13  21691        6102       Cold Drink
+4702.0         23691.0       1.12  21130        5937     Sweet Snacks
+4684.0         25883.0       1.24  20908        8272         Hot Food
+4695.0         22845.0       1.14  20047        6495   Savoury Snacks
+5059.0         24420.0       1.22  20040           3        Hot Drink
+4696.0         22511.0       1.13  19995        6384   Savoury Snacks
+
+======================================================================
+CORRELATION ANALYSIS
+======================================================================
+
+Correlation Matrix:
+               SALES  LOST SALES  PASSENGERS
+SALES       1.000000    0.009131    0.083628
+LOST SALES  0.009131    1.000000   -0.047911
+PASSENGERS  0.083628   -0.047911    1.000000
+
+======================================================================
+DATA QUALITY REPORT
+======================================================================
+
+result_hack 3.2 REDUCED A:
+  Total rows: 615,791
+  Duplicate rows: 0
+  Missing values: 58,250
+
+result_hack 3.2 REDUCED b:
+  Total rows: 716,413
+  Duplicate rows: 0
+  Missing values: 65,799
+
+======================================================================
+SUMMARY & RECOMMENDATIONS FOR FEATURE ENGINEERING
+======================================================================
+
+Dataset Summary:
+  total_transactions: 1,332,204
+  total_unique_flights: 99,857
+  unique_items: 171
+  unique_categories: 15
+  unique_routes: 502
+  unique_warehouses: 4
+  avg_transactions_per_flight: 13.34
+  avg_passenger_count: 169.00
+  stockout_rate_percent: 14.08
+  date_range: 2025-01-01 to 2025-08-30
+
+RECOMMENDED FEATURES FOR ENGINEERING (Updated from EDA):
+
+1. TEMPORAL FEATURES (7):
+   - day_of_week: Strong weekly patterns observed
+   - month, quarter, season: Seasonal consumption variations
+   - is_weekend: Different patterns on weekends
+   - is_holiday: Holiday effects
+   - days_since_year_start
+
+2. ROUTE FEATURES (6):
+   - origin, destination: Geographic patterns
+   - route_pair: Origin-destination interaction
+   - route_distance: Can estimate from IATA codes
+   - is_international: Short-haul vs international
+   - is_hub_route: High-traffic routes show patterns
+
+3. FLIGHT/PASSENGER FEATURES (5):
+   - passenger_count: Strong correlation with sales
+   - passenger_count_normalized: Per-aircraft-capacity
+   - booked_utilization_ratio: Demand signal
+   - flight_duration_category: Long-haul vs short-haul
+   - departure_time_category: Morning, afternoon, evening
+
+4. HISTORICAL AGGREGATIONS (20):
+   - Rolling averages (7-day, 30-day, 90-day) by route
+   - Rolling averages by warehouse
+   - Historical consumption by category
+   - Historical stockout rates
+   - Seasonal indices (normalized by month/week)
+   - Trend indicators (is consumption increasing/decreasing?)
+
+5. WAREHOUSE FEATURES (4):
+   - warehouse_location: Encoding warehouse patterns
+   - warehouse_avg_sales: Warehouse capacity/efficiency
+   - warehouse_stockout_history: Warehouse reliability
+   - inventory_level_category: Estimated stock levels
+
+6. PRODUCT/CATEGORY FEATURES (8):
+   - top_category_proportion: What dominates this flight?
+   - category_diversity_index: Variety of products
+   - category_historical_rate: Category consumption rates
+   - category_seasonality: Category x season effects
+   - category_warehouse_affinity: Which categories in which warehouses
+
+7. INTERACTION FEATURES (8):
+   - route x season: Route-specific seasonality
+   - warehouse x category: Warehouse expertise in categories
+   - passenger_count x category: Passenger type effects
+   - day_of_week x route: Route-specific weekly effects
+
+IMMEDIATE ACTIONS:
+
+1. [OK] COMPLETE: Dataset structure and quality verified
+2. NEXT: Aggregate transaction-level > flight-level data
+   - Sum SALES and LOST SALES per FLIGHT KEY
+   - Create binary targets: shortage_occurred (0/1)
+3. NEXT: Implement feature engineering pipeline
+   - All 58+ features listed above
+4. NEXT: Train XGBoost, Random Forest, Neural Network
+5. NEXT: Evaluate and compare models
+
+KEY METRIC TO TRACK:
+>> Can we reduce stockout rate from {summary['stockout_rate_percent']:.1f}% to <5%?
+
+
+======================================================================
+EDA Complete! Outputs saved to: C:\Users\garza\Documents\Hackahuates\ConsumptionPredictionv2\pipeline\01_data_exploration\outputs
+======================================================================

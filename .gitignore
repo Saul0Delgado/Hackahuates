@@ -4,6 +4,13 @@
 !ResumenTranscriptCitado.md
 !PreguntasGateGroup.md
 
+# Ignorar archivos grandes de resultados
+ConsumptionPredictionv2/data/raw/result_hack 3.2 REDUCED A.csv
+ConsumptionPredictionv2/data/raw/result_hack 3.2 REDUCED B.csv
+Docs/Hackathon_ConsumptionandEstimationv2/result_hack 3.2 REDUCED b.xlsx
+Docs/Hackathon_ConsumptionandEstimationv2/result_hack 3.2 REDUCED A.xlsx
+
+
 # Python
 __pycache__/
 *.py[cod]
