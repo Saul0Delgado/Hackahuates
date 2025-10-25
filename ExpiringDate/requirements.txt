@@ -1,0 +1,12 @@
+flask-restful
+flask_restx
+flask
+pytesseract
+numpy
+opencv-python-headless
+matplotlib
+scikit-image
+Pillow
+dateparser
+gunicorn
+flask-cors
