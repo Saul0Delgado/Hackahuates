@@ -48,26 +48,22 @@ def main():
     # Make predictions
     logger.info("Making predictions...")
     base_preds = base_model.predict(X_test[:10])  # First 10 test samples
-    quantile_preds = base_model.predict_quantiles(X_test[:10])
-    safety_stock = base_model.get_safety_stock_recommendation(X_test[:10], percentile=90)
+    q90_preds = base_model.predict_quantiles(X_test[:10])
     actual = y_test.iloc[:10].values
 
     # Display results
     print("\n" + "=" * 80)
-    print("PREDICTION COMPARISON (First 10 test samples)")
+    print("Q90 SAFETY STOCK PREDICTION (First 10 test samples)")
     print("=" * 80)
     print()
 
     results_df = pd.DataFrame({
         'Actual': actual,
         'Base_Pred': np.round(base_preds, 2),
-        'Q50': np.round(quantile_preds['Q50'], 2),
-        'Q75': np.round(quantile_preds['Q75'], 2),
-        'Q90_SafetyStock': np.round(quantile_preds['Q90'], 2),
-        'Q95': np.round(quantile_preds['Q95'], 2),
-        'Error': np.round(actual - base_preds, 2),
-        'Shortage_Risk': [
-            'HIGH' if actual[i] > quantile_preds['Q90'][i] else 'LOW'
+        'Q90_SafetyStock': np.round(q90_preds, 2),
+        'Safety_Margin': np.round(q90_preds - base_preds, 2),
+        'Shortage': [
+            'YES' if actual[i] > q90_preds[i] else 'NO'
             for i in range(len(actual))
         ]
     })
@@ -77,34 +73,29 @@ def main():
 
     # Analysis
     print("=" * 80)
-    print("ANALYSIS")
+    print("Q90 SAFETY STOCK ANALYSIS")
     print("=" * 80)
     print()
 
     # Compare shortage scenarios
     base_shortages = np.sum(actual > base_preds)
-    q90_shortages = np.sum(actual > quantile_preds['Q90'])
+    q90_shortages = np.sum(actual > q90_preds)
 
     print(f"Base Model (Mean) Prediction:")
     print(f"  Shortages: {base_shortages}/10 ({base_shortages*10}%)")
     print(f"  Waste (avg): {np.mean(np.maximum(base_preds - actual, 0)):.2f} units")
     print()
 
-    print(f"Q90 Safety Stock Recommendation:")
+    print(f"Q90 Safety Stock:")
     print(f"  Shortages: {q90_shortages}/10 ({q90_shortages*10}%)")
-    print(f"  Surplus (avg): {np.mean(np.maximum(quantile_preds['Q90'] - actual, 0)):.2f} units")
-    print()
-
-    print("Interpretation:")
-    print(f"  - By using Q90 instead of mean: {base_shortages - q90_shortages} fewer shortages")
-    print(f"  - Trade-off: Additional ~{np.mean(np.maximum(quantile_preds['Q90'] - actual, 0)):.1f} units surplus")
+    print(f"  Surplus (avg): {np.mean(np.maximum(q90_preds - actual, 0)):.2f} units")
     print()
 
     # Business impact
     shortage_reduction = ((base_shortages - q90_shortages) / base_shortages * 100) if base_shortages > 0 else 0
-    print("Business Impact:")
-    print(f"  - Shortage rate reduction: {shortage_reduction:.0f}%")
-    print(f"  - Recommended strategy: Use Q90 for safe stock, Q50 for base planning")
+    print("Impact:")
+    print(f"  - Shortage reduction: {shortage_reduction:.0f}%")
+    print(f"  - Using Q90 for safety stock ensures ~90% demand fulfillment")
     print()
 
 
