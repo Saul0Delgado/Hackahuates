@@ -1,58 +1,93 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
 import { Button } from "./ui/button"
-import { Badge } from "./ui/badge"
-import { Camera, Upload, X, Package, Lightbulb, TrendingUp, AlertTriangle } from "lucide-react"
+import { Select } from "./ui/select"
+import { Input } from "./ui/input"
+import { Label } from "./ui/label"
+import { Camera, Upload, X, Package, Lightbulb, TrendingUp, AlertTriangle, Check, Calendar } from "lucide-react"
+import { WebcamModal } from "./WebcamModal"
 
 interface Product {
   id: string
   name: string
-  category: string
   image?: string
+  expirationDate?: string
 }
 
 const PRODUCTS: Product[] = [
-  { id: "pan", name: "Pan", category: "Panadería" },
-  { id: "chocolate", name: "Chocolate", category: "Snacks" },
-  { id: "cafe", name: "Café", category: "Bebidas" },
-  { id: "te", name: "Té", category: "Bebidas" },
-  { id: "jugo", name: "Jugo", category: "Bebidas" },
-  { id: "galletas", name: "Galletas", category: "Snacks" },
-  { id: "fruta", name: "Fruta", category: "Alimentos Frescos" },
-  { id: "yogurt", name: "Yogurt", category: "Lácteos" },
-  { id: "sandwich", name: "Sandwich", category: "Alimentos" },
-  { id: "ensalada", name: "Ensalada", category: "Alimentos Frescos" },
+  { id: "1", name: "Bebidas frías" },
+  { id: "2", name: "Snacks Salados" },
+  { id: "3", name: "Alcohol" },
+  { id: "4", name: "Bebidas Calientes" },
+  { id: "5", name: "Snacks Dulces" },
+  { id: "6", name: "Comida Fresca" },
 ]
 
 export function ProductsManager() {
   const [products, setProducts] = useState<Product[]>(PRODUCTS)
-  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({})
+  const [tempImage, setTempImage] = useState<string | null>(null)
+  const [selectedProductId, setSelectedProductId] = useState<string>("")
+  const [expirationDate, setExpirationDate] = useState<string>("")
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const cameraInputRef = useRef<HTMLInputElement | null>(null)
+  const [isWebcamOpen, setIsWebcamOpen] = useState(false)
 
-  const handleImageUpload = (productId: string, file: File) => {
+  const handleTempImageUpload = (file: File) => {
     const reader = new FileReader()
     reader.onloadend = () => {
-      setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, image: reader.result as string } : p)))
+      setTempImage(reader.result as string)
     }
     reader.readAsDataURL(file)
   }
 
-  const handleFileChange = (productId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      handleImageUpload(productId, file)
+      handleTempImageUpload(file)
     }
   }
 
-  const removeImage = (productId: string) => {
-    setProducts((prev) => prev.map((p) => (p.id === productId ? { ...p, image: undefined } : p)))
+  const assignImageToProduct = () => {
+    if (!tempImage || !selectedProductId) {
+      alert("Por favor selecciona un producto y carga una imagen")
+      return
+    }
+
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === selectedProductId ? { ...p, image: tempImage, expirationDate: expirationDate || undefined } : p,
+      ),
+    )
+
+    // Resetear estados
+    setTempImage(null)
+    setSelectedProductId("")
+    setExpirationDate("")
   }
 
-  const triggerFileInput = (productId: string) => {
-    fileInputRefs.current[productId]?.click()
+  /*const removeImage = (productId: string) => {
+    setProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, image: undefined, expirationDate: undefined } : p)),
+    )
+  }*/
+
+  const handleWebcamCapture = (dataUrl: string) => {
+    setTempImage(dataUrl)
+    setIsWebcamOpen(false)
+  }
+
+  const handleCameraClick = () => {
+    // Detectar si es dispositivo móvil
+    if (navigator.maxTouchPoints > 0) {
+      // En móvil, usar el input nativo con capture
+      cameraInputRef.current?.click()
+    } else {
+      // En desktop, abrir WebcamModal
+      setIsWebcamOpen(true)
+    }
   }
 
   return (
@@ -68,100 +103,124 @@ export function ProductsManager() {
         </div>
       </div>
 
-      {/* Products Grid */}
-      <section aria-labelledby="products-section">
-        <h3 id="products-section" className="text-lg font-semibold text-foreground mb-4">
-          Catálogo de Productos
-        </h3>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {products.map((product) => (
-            <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <CardTitle className="text-base">{product.name}</CardTitle>
-                    <CardDescription className="text-xs mt-1">{product.category}</CardDescription>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    {product.image ? "Con imagen" : "Sin imagen"}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {/* Image Preview */}
-                <div
-                  className="relative aspect-square rounded-lg bg-muted overflow-hidden border-2 border-dashed border-border"
-                  role="img"
-                  aria-label={product.image ? `Imagen de ${product.name}` : `Sin imagen para ${product.name}`}
+      <section aria-labelledby="upload-section">
+        <Card className="border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Upload className="h-5 w-5 text-primary" aria-hidden="true" />
+              Cargar Imagen de Producto
+            </CardTitle>
+            <CardDescription>Sube o toma una foto del producto y asígnala al producto correspondiente</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Vista previa de imagen temporal */}
+            {tempImage && (
+              <div className="relative aspect-video max-w-md mx-auto rounded-lg overflow-hidden border-2 border-primary/20">
+                <img
+                  src={tempImage || "/placeholder.svg"}
+                  alt="Vista previa"
+                  className="h-full w-full object-contain bg-muted"
+                />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="absolute top-2 right-2 h-8 w-8 p-0"
+                  onClick={() => setTempImage(null)}
+                  aria-label="Eliminar imagen temporal"
                 >
-                  {product.image ? (
-                    <>
-                      <img
-                        src={product.image || "/placeholder.svg"}
-                        alt={product.name}
-                        className="h-full w-full object-cover"
-                      />
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="absolute top-2 right-2 h-8 w-8 p-0"
-                        onClick={() => removeImage(product.id)}
-                        aria-label={`Eliminar imagen de ${product.name}`}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </>
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <Package className="h-12 w-12 text-muted-foreground/30" aria-hidden="true" />
-                    </div>
-                  )}
-                </div>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
 
-                {/* Upload Buttons */}
-                <div className="flex gap-2">
-                  <input
-                    ref={(el) => { fileInputRefs.current[product.id] = el }}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleFileChange(product.id, e)}
-                    aria-label={`Seleccionar archivo para ${product.name}`}
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 gap-2 bg-transparent"
-                    onClick={() => triggerFileInput(product.id)}
-                    aria-label={`Subir imagen para ${product.name}`}
-                  >
-                    <Upload className="h-4 w-4" />
-                    Subir
-                  </Button>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    id={`camera-${product.id}`}
-                    onChange={(e) => handleFileChange(product.id, e)}
-                    aria-label={`Tomar foto para ${product.name}`}
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 gap-2 bg-transparent"
-                    onClick={() => document.getElementById(`camera-${product.id}`)?.click()}
-                    aria-label={`Tomar foto para ${product.name}`}
-                  >
-                    <Camera className="h-4 w-4" />
-                    Cámara
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+            {/* Botones de carga */}
+            <div className="flex gap-3 justify-center">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+                aria-label="Seleccionar archivo de imagen"
+              />
+              <Button
+                variant="outline"
+                className="gap-2 bg-transparent"
+                onClick={() => fileInputRef.current?.click()}
+                aria-label="Subir imagen desde archivo"
+              >
+                <Upload className="h-4 w-4" />
+                Subir Archivo
+              </Button>
+
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleFileChange}
+                aria-label="Tomar foto con cámara"
+              />
+              <Button
+                variant="outline"
+                className="gap-2 bg-transparent"
+                onClick={handleCameraClick}
+                aria-label="Tomar foto"
+              >
+                <Camera className="h-4 w-4" />
+                Tomar Foto
+              </Button>
+            </div>
+
+            {/* Formulario de asignación */}
+            <div className="grid gap-4 max-w-md mx-auto pt-4 border-t">
+              <div className="space-y-2">
+                <Label htmlFor="product-select">Producto</Label>
+                <Select
+                  id="product-select"
+                  value={selectedProductId}
+                  onChange={(e) => setSelectedProductId(e.target.value)}
+                  aria-label="Seleccionar producto"
+                >
+                  <option value="">Selecciona un producto...</option>
+                  {products.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="expiration-date" className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" aria-hidden="true" />
+                  Fecha de Caducidad (Opcional)
+                </Label>
+                <Input
+                  id="expiration-date"
+                  type="date"
+                  value={expirationDate}
+                  onChange={(e) => setExpirationDate(e.target.value)}
+                  aria-label="Fecha de caducidad del producto"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Ingresa manualmente si hay problemas con la detección automática
+                </p>
+              </div>
+
+              <Button
+                onClick={assignImageToProduct}
+                disabled={!tempImage || !selectedProductId}
+                className="gap-2"
+                aria-label="Asignar imagen al producto"
+              >
+                <Check className="h-4 w-4" />
+                Asignar Imagen
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </section>
 
       {/* Recommendations Section */}
@@ -268,6 +327,9 @@ export function ProductsManager() {
           </Card>
         </div>
       </section>
+
+      {/* Webcam Modal */}
+      <WebcamModal isOpen={isWebcamOpen} onClose={() => setIsWebcamOpen(false)} onPhotoTaken={handleWebcamCapture} />
     </div>
   )
 }
