@@ -196,12 +196,6 @@ interface PredictionResultsProps {
   products: typeof PRODUCTS;
 }
 
-interface Product {
-  id: number;
-  name: string;
-  code: string;
-}
-
 function PredictionResults({ result, products }: PredictionResultsProps) {
   return (
     <Card>
