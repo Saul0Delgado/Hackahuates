@@ -7,7 +7,7 @@ import pandas as pd
 from typing import Dict, Tuple, Optional, List
 from datetime import datetime
 
-from ..utils import logger, load_config, get_project_root
+from ..utils import logger, load_config, get_project_root, get_data_path
 from ..feature_engineering import FeatureEngineer
 from ..models import XGBoostConsumptionModel, RandomForestConsumptionModel, EnsembleConsumptionModel
 
@@ -16,6 +16,45 @@ class PredictionService:
     """
     Service for making predictions using trained models
     """
+
+    # Product ID mapping (numeric ID to actual Product_ID)
+    PRODUCT_ID_MAP = {
+        1: 'BRD001',
+        2: 'CHO050',
+        3: 'COF200',
+        4: 'CRK075',
+        5: 'DRK023',
+        6: 'DRK024',
+        7: 'HTB110',
+        8: 'JCE200',
+        9: 'NUT030',
+        10: 'SNK001'
+    }
+
+    # Flight type mapping (frontend values to training values)
+    FLIGHT_TYPE_MAP = {
+        'INTERNATIONAL': 'long-haul',
+        'DOMESTIC': 'short-haul',
+        'SHORT_HAUL': 'short-haul',
+        'MEDIUM_HAUL': 'medium-haul',
+        'LONG_HAUL': 'long-haul',
+        # Already correct values
+        'long-haul': 'long-haul',
+        'medium-haul': 'medium-haul',
+        'short-haul': 'short-haul'
+    }
+
+    # Service type mapping (frontend values to training values)
+    SERVICE_TYPE_MAP = {
+        'ECONOMY': 'Retail',
+        'BUSINESS': 'Retail',
+        'FIRST_CLASS': 'Retail',
+        'PREMIUM_ECONOMY': 'Retail',
+        'PICK_AND_PACK': 'Pick & Pack',
+        # Already correct values
+        'Retail': 'Retail',
+        'Pick & Pack': 'Pick & Pack'
+    }
 
     def __init__(self, model_name: str = "xgboost"):
         """
@@ -29,6 +68,7 @@ class PredictionService:
         self.model = None
         self.feature_engineer = None
         self.all_models = {}
+        self.train_df = None  # Reference training data for aggregations
 
         # Load models
         self._load_models()
@@ -78,6 +118,17 @@ class PredictionService:
             self.feature_engineer = FeatureEngineer()
             self.feature_engineer.load_encoders()
 
+            # Load reference training data for aggregations
+            try:
+                train_path = get_data_path("data/processed/train.csv")
+                if train_path.exists():
+                    self.train_df = pd.read_csv(train_path)
+                    logger.info(f"Loaded reference training data: {len(self.train_df)} rows")
+                else:
+                    logger.warning("Training data not found, predictions may have feature mismatches")
+            except Exception as e:
+                logger.warning(f"Could not load training data: {e}")
+
             logger.info(f"Using {self.model_name} for predictions")
 
         except Exception as e:
@@ -92,7 +143,7 @@ class PredictionService:
 
         Args:
             passenger_count: Number of passengers
-            product_id: Product ID
+            product_id: Product ID (numeric 1-10 or string like 'BRD001')
             flight_type: Flight type (DOMESTIC, INTERNATIONAL, CHARTER)
             service_type: Service type (ECONOMY, BUSINESS)
             origin: Origin city/code
@@ -103,22 +154,33 @@ class PredictionService:
             Dictionary with prediction and confidence intervals
         """
         try:
+            # Convert numeric product_id to actual Product_ID if needed
+            if isinstance(product_id, int) and product_id in self.PRODUCT_ID_MAP:
+                actual_product_id = self.PRODUCT_ID_MAP[product_id]
+            else:
+                actual_product_id = product_id  # Already a string or use as-is
+
+            # Map flight_type and service_type to training values
+            actual_flight_type = self.FLIGHT_TYPE_MAP.get(flight_type.upper(), flight_type)
+            actual_service_type = self.SERVICE_TYPE_MAP.get(service_type.upper(), service_type)
+
             # Create input dataframe
             input_data = pd.DataFrame({
                 'Passenger_Count': [passenger_count],
-                'Product_ID': [product_id],
-                'Flight_Type': [flight_type],
-                'Service_Type': [service_type],
+                'Product_ID': [actual_product_id],
+                'Flight_Type': [actual_flight_type],
+                'Service_Type': [actual_service_type],
                 'Origin': [origin],
                 'Unit_Cost': [unit_cost],
                 'Consumption_Qty': [passenger_count],  # Placeholder for feature engineering
+                'Standard_Specification_Qty': [passenger_count],  # Required for feature engineering
                 'Date': [flight_date if flight_date else datetime.now().strftime('%Y-%m-%d')],
                 'waste_qty': [0],  # Placeholder
                 'overage_qty': [0],  # Placeholder
             })
 
-            # Transform features
-            X, _ = self.feature_engineer.transform(input_data, fit=False)
+            # Transform features using training data for aggregations
+            X, _ = self.feature_engineer.transform(input_data, train_df=self.train_df, fit=False)
 
             # Get predictions with confidence intervals
             prediction, lower, upper = self.model.predict_with_confidence(X)
