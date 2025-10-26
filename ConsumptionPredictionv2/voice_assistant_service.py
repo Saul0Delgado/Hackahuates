@@ -10,6 +10,8 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional, Dict
 import os
+import base64
+import requests
 
 # Cargar variables de entorno desde .env
 try:
@@ -74,6 +76,20 @@ else:
     else:
         print(f"[INIT] ✗ Gemini model NOT initialized - Reason: Unknown")
 
+# Configurar ElevenLabs API
+ELEVEN_LABS_API_KEY = os.getenv("ELEVEN_LABS_API_KEY", "")
+ELEVENLABS_VOICE_ID = "Xb7hH8MSUJpSbSDYk0k2"  # Paula - voz femenina en español natural
+ELEVENLABS_MODEL_ID = "eleven_multilingual_v2"
+
+if not ELEVEN_LABS_API_KEY:
+    print("[INIT] ✗ ELEVEN_LABS_API_KEY not found in environment variables or .env file")
+    print("[INIT] ⚠ ElevenLabs TTS will not be available - frontend will use Web Speech API fallback")
+    ELEVENLABS_AVAILABLE = False
+else:
+    print(f"[INIT] ✓ ELEVEN_LABS_API_KEY loaded successfully (length: {len(ELEVEN_LABS_API_KEY)} chars)")
+    print(f"[INIT] ✓ Using ElevenLabs voice: {ELEVENLABS_VOICE_ID} (Paula - Spanish)")
+    ELEVENLABS_AVAILABLE = True
+
 # ============================================================================
 # MODELS
 # ============================================================================
@@ -100,6 +116,7 @@ class VoiceResponse(BaseModel):
     confidence: float = Field(..., description="Nivel de confianza 0-1")
     drawer_id: Optional[str] = Field(None, description="ID del drawer relacionado")
     suggestions: Optional[list] = Field(default=[], description="Sugerencias adicionales")
+    audio_base64: Optional[str] = Field(None, description="Audio de la respuesta en base64 (ElevenLabs TTS)")
 
 # ============================================================================
 # KNOWLEDGE BASE
@@ -476,7 +493,8 @@ async def voice_assistant(query: VoiceQuery):
         return VoiceResponse(
             answer="Por favor selecciona un drawer primero para poder ayudarte mejor con información específica.",
             confidence=1.0,
-            suggestions=["Selecciona un drawer del menú", "Verifica que el drawer ID sea correcto"]
+            suggestions=["Selecciona un drawer del menú", "Verifica que el drawer ID sea correcto"],
+            audio_base64=None
         )
 
     # Si Gemini no está disponible, usar fallback
@@ -523,11 +541,24 @@ Respuesta:"""
         print(f"[GEMINI SUCCESS] Cleaned answer: {answer[:150]}..." if len(answer) > 150 else f"[GEMINI SUCCESS] Cleaned answer: {answer}")
         print(f"{'='*70}\n")
 
+        # Generar audio con ElevenLabs
+        audio_base64 = None
+        if ELEVENLABS_AVAILABLE and ELEVEN_LABS_API_KEY:
+            print(f"[VOICE ASSISTANT] Generating audio with ElevenLabs...")
+            audio_base64 = await convert_text_to_speech_elevenlabs(answer)
+            if audio_base64:
+                print(f"[VOICE ASSISTANT] Audio generated successfully and encoded to base64")
+            else:
+                print(f"[VOICE ASSISTANT] Audio generation failed - frontend will use Web Speech API fallback")
+        else:
+            print(f"[VOICE ASSISTANT] ElevenLabs not available - frontend will use Web Speech API fallback")
+
         return VoiceResponse(
             answer=answer,
             confidence=0.95,
             drawer_id=query.drawer_context.drawer_id,
-            suggestions=[]
+            suggestions=[],
+            audio_base64=audio_base64
         )
 
     except Exception as e:
@@ -543,7 +574,8 @@ Respuesta:"""
             answer="Lo siento, hubo un error procesando tu pregunta. Por favor intenta de nuevo o consulta con tu supervisor.",
             confidence=0.0,
             drawer_id=query.drawer_context.drawer_id if query.drawer_context else None,
-            suggestions=["Intenta reformular la pregunta", "Verifica tu conexión"]
+            suggestions=["Intenta reformular la pregunta", "Verifica tu conexión"],
+            audio_base64=None
         )
 
 def _clean_response_for_speech(text: str) -> str:
@@ -572,6 +604,84 @@ def _clean_response_for_speech(text: str) -> str:
 
     return text.strip()
 
+async def convert_text_to_speech_elevenlabs(text: str) -> Optional[str]:
+    """
+    Convierte texto a voz usando ElevenLabs API
+    Retorna: audio en base64 o None si falla
+
+    Args:
+        text: Texto a convertir a voz
+
+    Returns:
+        Base64 encoded audio string, or None if conversion fails
+    """
+
+    if not ELEVENLABS_AVAILABLE or not ELEVEN_LABS_API_KEY:
+        print("[ELEVENLABS] Skipping TTS - ElevenLabs not available")
+        return None
+
+    if not text or len(text.strip()) == 0:
+        print("[ELEVENLABS] Warning: Empty text provided for TTS")
+        return None
+
+    try:
+        # Log: Antes de llamar a ElevenLabs
+        print(f"[ELEVENLABS CALL] Converting text to speech...")
+        print(f"[ELEVENLABS CALL] Text length: {len(text)} characters")
+        print(f"[ELEVENLABS CALL] Voice ID: {ELEVENLABS_VOICE_ID}")
+        print(f"[ELEVENLABS CALL] Model: {ELEVENLABS_MODEL_ID}")
+
+        # Construir request a ElevenLabs
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
+        headers = {
+            "xi-api-key": ELEVEN_LABS_API_KEY,
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "text": text,
+            "model_id": ELEVENLABS_MODEL_ID,
+            "language_code": "es",
+            "voice_settings": {
+                "stability": 0.5,
+                "similarity_boost": 0.75,
+                "style": 0.0,
+                "use_speaker_boost": False
+            }
+        }
+
+        # Hacer request
+        print(f"[ELEVENLABS CALL] Sending request to ElevenLabs API...")
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
+
+        # Validar respuesta
+        if response.status_code != 200:
+            print(f"[ELEVENLABS ERROR] API returned status code {response.status_code}")
+            print(f"[ELEVENLABS ERROR] Response: {response.text[:200]}")
+            return None
+
+        # Convertir audio a base64
+        audio_bytes = response.content
+        audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+
+        # Log: Éxito
+        print(f"[ELEVENLABS SUCCESS] Audio generated successfully")
+        print(f"[ELEVENLABS SUCCESS] Audio size: {len(audio_bytes)} bytes")
+        print(f"[ELEVENLABS SUCCESS] Base64 encoded, ready to send to frontend")
+
+        return audio_base64
+
+    except requests.Timeout:
+        print(f"[ELEVENLABS ERROR] Request timeout after 30 seconds")
+        return None
+    except requests.RequestException as e:
+        print(f"[ELEVENLABS ERROR] Request error: {str(e)}")
+        return None
+    except Exception as e:
+        print(f"[ELEVENLABS ERROR] Unexpected error: {type(e).__name__}")
+        print(f"[ELEVENLABS ERROR] Error message: {str(e)}")
+        return None
+
 def _fallback_response(query: VoiceQuery) -> VoiceResponse:
     """
     Respuestas fallback cuando Gemini no está disponible
@@ -587,13 +697,15 @@ def _fallback_response(query: VoiceQuery) -> VoiceResponse:
             return VoiceResponse(
                 answer="Coloca los cubiertos en la capa superior para fácil acceso de la tripulación.",
                 confidence=0.8,
-                drawer_id=query.drawer_context.drawer_id if query.drawer_context else None
+                drawer_id=query.drawer_context.drawer_id if query.drawer_context else None,
+                audio_base64=None
             )
         elif "drk" in question_lower or "bebida" in question_lower:
             return VoiceResponse(
                 answer="Coloca las bebidas en la capa inferior para estabilidad por su peso.",
                 confidence=0.8,
-                drawer_id=query.drawer_context.drawer_id if query.drawer_context else None
+                drawer_id=query.drawer_context.drawer_id if query.drawer_context else None,
+                audio_base64=None
             )
 
     elif "reusar" in question_lower or "reuso" in question_lower or "botella" in question_lower:
@@ -603,13 +715,15 @@ def _fallback_response(query: VoiceQuery) -> VoiceResponse:
             return VoiceResponse(
                 answer="No, para Delta solo se aceptan botellas selladas en empaque original.",
                 confidence=0.9,
-                drawer_id=query.drawer_context.drawer_id if query.drawer_context else None
+                drawer_id=query.drawer_context.drawer_id if query.drawer_context else None,
+                audio_base64=None
             )
         else:
             return VoiceResponse(
                 answer="Para Aeromexico, puedes reusar botellas si están más del 50 por ciento llenas y el volumen total se cumple.",
                 confidence=0.9,
-                drawer_id=query.drawer_context.drawer_id if query.drawer_context else None
+                drawer_id=query.drawer_context.drawer_id if query.drawer_context else None,
+                audio_base64=None
             )
 
     elif "rapido" in question_lower or "velocidad" in question_lower:
@@ -617,7 +731,8 @@ def _fallback_response(query: VoiceQuery) -> VoiceResponse:
         return VoiceResponse(
             answer="Pre-organiza los items únicos antes de empezar y usa ambas manos para items simétricos.",
             confidence=0.7,
-            drawer_id=query.drawer_context.drawer_id if query.drawer_context else None
+            drawer_id=query.drawer_context.drawer_id if query.drawer_context else None,
+            audio_base64=None
         )
 
     elif any(word in question_lower for word in ["vence", "expira", "caducidad", "expiration", "expired", "vencido", "vencimiento", "fechas"]):
@@ -625,7 +740,8 @@ def _fallback_response(query: VoiceQuery) -> VoiceResponse:
         return VoiceResponse(
             answer="Descarta productos con menos de 5 a 7 días antes de la expiración. Es regla de seguridad de la cadena de frío. Nunca agregues al carrito si está vencido o próximo a vencer.",
             confidence=0.85,
-            drawer_id=query.drawer_context.drawer_id if query.drawer_context else None
+            drawer_id=query.drawer_context.drawer_id if query.drawer_context else None,
+            audio_base64=None
         )
 
     elif any(word in question_lower for word in ["agregado", "carrito", "inventory", "stock", "inventario"]):
@@ -633,7 +749,8 @@ def _fallback_response(query: VoiceQuery) -> VoiceResponse:
         return VoiceResponse(
             answer="Verifica primero la fecha de expiración antes de agregar cualquier producto. Solo agrega items con al menos 5 días de vida útil.",
             confidence=0.8,
-            drawer_id=query.drawer_context.drawer_id if query.drawer_context else None
+            drawer_id=query.drawer_context.drawer_id if query.drawer_context else None,
+            audio_base64=None
         )
 
     # Default fallback
@@ -643,7 +760,8 @@ def _fallback_response(query: VoiceQuery) -> VoiceResponse:
         answer="No tengo suficiente información para responder esa pregunta. Por favor consulta el manual o pregunta a tu supervisor.",
         confidence=0.3,
         drawer_id=query.drawer_context.drawer_id if query.drawer_context else None,
-        suggestions=["Reformula la pregunta", "Consulta el manual de procedimientos"]
+        suggestions=["Reformula la pregunta", "Consulta el manual de procedimientos"],
+        audio_base64=None
     )
 
 @router.get("/drawer/{drawer_id}")

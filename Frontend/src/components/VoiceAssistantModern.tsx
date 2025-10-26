@@ -190,8 +190,8 @@ export function VoiceAssistantModern() {
       };
       setConversation(prev => [...prev, assistantMessage]);
 
-      // Speak response
-      speakResponse(response.answer);
+      // Speak response - pass full response to use ElevenLabs audio if available
+      speakResponse(response);
 
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error al procesar la pregunta';
@@ -201,8 +201,51 @@ export function VoiceAssistantModern() {
     }
   };
 
-  // Text-to-speech
-  const speakResponse = (text: string) => {
+  // Text-to-speech with ElevenLabs fallback to Web Speech API
+  const speakResponse = (response: VoiceResponse) => {
+    setOrbState('speaking');
+
+    // Try ElevenLabs audio first if available
+    if (response.audio_base64) {
+      try {
+        // Convert base64 to blob
+        const binaryString = atob(response.audio_base64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        // Create and play audio element
+        const audio = new Audio(audioUrl);
+        audio.onended = () => {
+          setOrbState('idle');
+          setIsLoadingResponse(false);
+          // Clean up the URL
+          URL.revokeObjectURL(audioUrl);
+        };
+
+        audio.onerror = () => {
+          console.error('Error playing ElevenLabs audio, falling back to Web Speech API');
+          // Fallback to Web Speech API
+          speakWithWebSpeechAPI(response.answer);
+        };
+
+        audio.play();
+        return;
+      } catch (err) {
+        console.error('Error processing ElevenLabs audio:', err);
+        // Fall through to Web Speech API
+      }
+    }
+
+    // Fallback to Web Speech API
+    speakWithWebSpeechAPI(response.answer);
+  };
+
+  // Web Speech API text-to-speech (fallback)
+  const speakWithWebSpeechAPI = (text: string) => {
     if (!synthRef.current) {
       setError('Text-to-speech no está disponible');
       setOrbState('idle');
