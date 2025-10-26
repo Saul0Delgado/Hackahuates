@@ -6,10 +6,9 @@ import { ModelMetricsDashboard } from "./components/ModelMetrics"
 import { ProductsManager } from "./components/ProductsManager"
 import { VoiceAssistantModern } from "./components/VoiceAssistantModern"
 import { Button } from "./components/ui/button"
-import { Badge } from "./components/ui/badge"
 import { Card, CardContent } from "./components/ui/card"
 import { apiService } from "./services/api"
-import { Activity, BarChart3, RefreshCw, AlertCircle, Package, Mic } from "lucide-react"
+import { Zap, BarChart3, RefreshCw, AlertCircle, Package, Mic } from "lucide-react"
 
 type View = "prediction" | "metrics" | "products" | "voice"
 
@@ -32,51 +31,41 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card shadow-sm" role="banner">
+      <header className="border-b border-slate-200 bg-white" role="banner">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <Activity className="h-6 w-6 text-primary" aria-hidden="true" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold tracking-tight text-foreground">SmartCart AI</h1>
-                  <p className="text-sm text-muted-foreground">Sistema de Predicción Inteligente</p>
-                </div>
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg" style={{ backgroundColor: '#010165' }}>
+                <Zap className="h-6 w-6 text-white" aria-hidden="true" />
               </div>
-              <Badge
-                variant={apiStatus === "online" ? "default" : "destructive"}
-                className="h-6"
-                aria-live="polite"
-                aria-label={`Estado de la API: ${apiStatus === "checking" ? "verificando" : apiStatus === "online" ? "conectada" : "desconectada"}`}
-              >
-                <span
-                  className={`mr-2 h-2 w-2 rounded-full ${apiStatus === "online" ? "bg-green-400" : "bg-red-400"} animate-pulse`}
-                  aria-hidden="true"
-                />
-                {apiStatus === "checking"
-                  ? "Verificando..."
-                  : apiStatus === "online"
-                    ? "API Conectada"
-                    : "API Desconectada"}
-              </Badge>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight" style={{ color: '#010165' }}>SmartCart AI</h1>
+                <p className="text-sm text-slate-600">Sistema de Predicción Inteligente</p>
+              </div>
             </div>
             <nav className="flex gap-2 flex-wrap" role="navigation" aria-label="Navegación principal">
               <Button
-                variant={view === "prediction" ? "default" : "outline"}
                 onClick={() => setView("prediction")}
-                className="gap-2"
+                className="gap-2 rounded-lg h-10"
+                style={{
+                  backgroundColor: view === "prediction" ? "#010165" : "transparent",
+                  color: view === "prediction" ? "white" : "#010165",
+                  border: view === "prediction" ? "none" : "1px solid #e2e8f0"
+                }}
                 aria-pressed={view === "prediction"}
                 aria-label="Ver predicciones"
               >
-                <Activity className="h-4 w-4" aria-hidden="true" />
+                <Zap className="h-4 w-4" aria-hidden="true" />
                 <span>Predicción</span>
               </Button>
               <Button
-                variant={view === "metrics" ? "default" : "outline"}
                 onClick={() => setView("metrics")}
-                className="gap-2"
+                className="gap-2 rounded-lg h-10"
+                style={{
+                  backgroundColor: view === "metrics" ? "#010165" : "transparent",
+                  color: view === "metrics" ? "white" : "#010165",
+                  border: view === "metrics" ? "none" : "1px solid #e2e8f0"
+                }}
                 aria-pressed={view === "metrics"}
                 aria-label="Ver métricas del modelo"
               >
@@ -84,9 +73,13 @@ export default function App() {
                 <span>Métricas</span>
               </Button>
               <Button
-                variant={view === "products" ? "default" : "outline"}
                 onClick={() => setView("products")}
-                className="gap-2"
+                className="gap-2 rounded-lg h-10"
+                style={{
+                  backgroundColor: view === "products" ? "#010165" : "transparent",
+                  color: view === "products" ? "white" : "#010165",
+                  border: view === "products" ? "none" : "1px solid #e2e8f0"
+                }}
                 aria-pressed={view === "products"}
                 aria-label="Ver gestión de productos"
               >
@@ -94,9 +87,13 @@ export default function App() {
                 <span>Productos</span>
               </Button>
               <Button
-                variant={view === "voice" ? "default" : "outline"}
                 onClick={() => setView("voice")}
-                className="gap-2"
+                className="gap-2 rounded-lg h-10"
+                style={{
+                  backgroundColor: view === "voice" ? "#010165" : "transparent",
+                  color: view === "voice" ? "white" : "#010165",
+                  border: view === "voice" ? "none" : "1px solid #e2e8f0"
+                }}
                 aria-pressed={view === "voice"}
                 aria-label="Asistente de voz para productividad"
               >
@@ -110,27 +107,27 @@ export default function App() {
 
       <main className="container mx-auto px-4 py-8" role="main">
         {apiStatus === "offline" && (
-          <Card className="mb-6 border-destructive/50 bg-destructive/5" role="alert" aria-live="assertive">
+          <Card className="mb-6 border-red-200 bg-red-50 rounded-lg" role="alert" aria-live="assertive">
             <CardContent className="p-6">
               <div className="flex gap-4">
-                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="flex-1">
-                  <h2 className="text-destructive font-semibold text-lg mb-2">No se puede conectar con el API</h2>
-                  <p className="text-foreground/80 leading-relaxed mb-3">
+                  <h2 className="text-red-600 font-semibold text-lg mb-2">No se puede conectar con el API</h2>
+                  <p className="text-slate-700 leading-relaxed mb-3">
                     Asegúrate de que el servidor esté corriendo en{" "}
-                    <code className="bg-muted px-2 py-1 rounded text-sm font-mono">http://localhost:8000</code>
+                    <code className="bg-red-100 px-2 py-1 rounded text-sm font-mono text-red-800">http://localhost:8000</code>
                   </p>
-                  <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                  <p className="text-sm text-slate-600 mb-4 leading-relaxed">
                     Para iniciar el servidor:{" "}
-                    <code className="bg-muted px-2 py-1 rounded font-mono">
+                    <code className="bg-red-100 px-2 py-1 rounded font-mono text-red-800">
                       cd ConsumptionPrediction && python run_api.py
                     </code>
                   </p>
                   <Button
-                    variant="outline"
                     size="sm"
                     onClick={checkAPIStatus}
-                    className="gap-2 bg-transparent"
+                    className="gap-2 rounded-lg"
+                    style={{ backgroundColor: '#010165', color: 'white' }}
                     aria-label="Reintentar conexión con el API"
                   >
                     <RefreshCw className="h-4 w-4" aria-hidden="true" />
@@ -155,26 +152,26 @@ export default function App() {
         </div>
       </main>
 
-      <footer className="border-t bg-card mt-auto" role="contentinfo">
+      <footer className="border-t border-slate-200 bg-white mt-auto" role="contentinfo">
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col items-center gap-4 text-center">
             <div className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-primary" aria-hidden="true" />
-              <span className="font-semibold text-foreground">SmartCart AI</span>
+              <Zap className="h-5 w-5" style={{ color: '#010165' }} aria-hidden="true" />
+              <span className="font-semibold" style={{ color: '#010165' }}>SmartCart AI</span>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
+            <p className="text-sm text-slate-600 leading-relaxed max-w-2xl">
               Sistema de Predicción de Comidas para Catering Aéreo
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="font-medium text-primary">95%</span>
+              <div className="flex items-center gap-2 text-slate-600">
+                <span className="font-semibold" style={{ color: '#010165' }}>95%</span>
                 <span>Reducción de desperdicio</span>
               </div>
-              <span className="text-border" aria-hidden="true">
+              <span className="text-slate-300" aria-hidden="true">
                 •
               </span>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="font-medium text-primary">98.98%</span>
+              <div className="flex items-center gap-2 text-slate-600">
+                <span className="font-semibold" style={{ color: '#010165' }}>98.98%</span>
                 <span>Precisión del modelo</span>
               </div>
             </div>
