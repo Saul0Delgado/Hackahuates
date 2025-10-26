@@ -533,6 +533,20 @@ def _fallback_response(query: VoiceQuery) -> VoiceResponse:
             drawer_id=query.drawer_context.drawer_id if query.drawer_context else None
         )
 
+    elif any(word in question_lower for word in ["vence", "expira", "caducidad", "expiration", "expired", "vencido", "vencimiento", "fechas"]):
+        return VoiceResponse(
+            answer="Descarta productos con menos de 5 a 7 días antes de la expiración. Es regla de seguridad de la cadena de frío. Nunca agregues al carrito si está vencido o próximo a vencer.",
+            confidence=0.85,
+            drawer_id=query.drawer_context.drawer_id if query.drawer_context else None
+        )
+
+    elif any(word in question_lower for word in ["agregado", "carrito", "inventory", "stock", "inventario"]):
+        return VoiceResponse(
+            answer="Verifica primero la fecha de expiración antes de agregar cualquier producto. Solo agrega items con al menos 5 días de vida útil.",
+            confidence=0.8,
+            drawer_id=query.drawer_context.drawer_id if query.drawer_context else None
+        )
+
     # Default fallback
     return VoiceResponse(
         answer="No tengo suficiente información para responder esa pregunta. Por favor consulta el manual o pregunta a tu supervisor.",

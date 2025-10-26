@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { PredictionForm } from "./components/PredictionForm"
 import { ModelMetricsDashboard } from "./components/ModelMetrics"
 import { ProductsManager } from "./components/ProductsManager"
-import { VoiceAssistant } from "./components/VoiceAssistant"
+import { VoiceAssistantModern } from "./components/VoiceAssistantModern"
 import { Button } from "./components/ui/button"
 import { Badge } from "./components/ui/badge"
 import { Card, CardContent } from "./components/ui/card"
@@ -150,7 +150,7 @@ export default function App() {
           ) : view === "products" ? (
             <ProductsManager />
           ) : (
-            <VoiceAssistant />
+            <VoiceAssistantModern />
           )}
         </div>
       </main>
