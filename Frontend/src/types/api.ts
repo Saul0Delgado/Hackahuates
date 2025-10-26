@@ -224,6 +224,38 @@ export const WAREHOUSES = [
 
 export type WarehouseOption = typeof WAREHOUSES[number];
 
+/**
+ * European airport options for route selection
+ */
+export interface Airport {
+  code: string;
+  name: string;
+  country: string;
+}
+
+export const AIRPORTS: Airport[] = [
+  { code: 'LIS', name: 'Lisbon', country: 'Portugal' },
+  { code: 'MAD', name: 'Madrid', country: 'Spain' },
+  { code: 'BCN', name: 'Barcelona', country: 'Spain' },
+  { code: 'PMI', name: 'Palma de Mallorca', country: 'Spain' },
+  { code: 'SVQ', name: 'Seville', country: 'Spain' },
+  { code: 'OPO', name: 'Porto', country: 'Portugal' },
+  { code: 'CDG', name: 'Paris', country: 'France' },
+  { code: 'LHR', name: 'London', country: 'United Kingdom' },
+  { code: 'FCO', name: 'Rome', country: 'Italy' },
+  { code: 'MXP', name: 'Milan', country: 'Italy' },
+  { code: 'AMS', name: 'Amsterdam', country: 'Netherlands' },
+  { code: 'FRA', name: 'Frankfurt', country: 'Germany' },
+  { code: 'MUC', name: 'Munich', country: 'Germany' },
+  { code: 'VIE', name: 'Vienna', country: 'Austria' },
+  { code: 'ZRH', name: 'Zurich', country: 'Switzerland' },
+  { code: 'CPH', name: 'Copenhagen', country: 'Denmark' },
+  { code: 'ARN', name: 'Stockholm', country: 'Sweden' },
+  { code: 'OSL', name: 'Oslo', country: 'Norway' },
+  { code: 'DUB', name: 'Dublin', country: 'Ireland' },
+  { code: 'BRU', name: 'Brussels', country: 'Belgium' }
+];
+
 // ============================================================================
 // MODEL PERFORMANCE CONSTANTS
 // ============================================================================

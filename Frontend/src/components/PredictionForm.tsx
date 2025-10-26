@@ -4,15 +4,16 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select } from './ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
 import { apiService } from '../services/api';
-import { PRODUCT_CATEGORIES, WAREHOUSES, MODEL_PERFORMANCE, type PredictionRequest, type PredictionResponse, type WarehouseOption, type ProductCategory } from '../types/api';
-import { AlertTriangle } from 'lucide-react';
+import { WAREHOUSES, AIRPORTS, type PredictionRequest, type PredictionResponse, type WarehouseOption, type ProductCategory } from '../types/api';
+import { AlertTriangle, TrendingUp, RefreshCw } from 'lucide-react';
 
 export function PredictionForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PredictionResponse | null>(null);
+  const [origin, setOrigin] = useState('LIS');
+  const [destination, setDestination] = useState('MAD');
 
   // Generate flight key automatically
   const generateFlightKey = () => {
@@ -21,7 +22,7 @@ export function PredictionForm() {
 
   const [formData, setFormData] = useState<PredictionRequest>({
     flight_key: generateFlightKey(),
-    route: 'LIS-MAD',
+    route: `${origin}-${destination}`,
     passengers: 180,
     flight_date: new Date().toISOString().split('T')[0],
     warehouse: 'Lisbon',
@@ -52,29 +53,57 @@ export function PredictionForm() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleAirportChange = (newOrigin?: string, newDestination?: string) => {
+    const updatedOrigin = newOrigin ?? origin;
+    const updatedDestination = newDestination ?? destination;
+
+    if (newOrigin !== undefined) setOrigin(newOrigin);
+    if (newDestination !== undefined) setDestination(newDestination);
+
+    setFormData(prev => ({
+      ...prev,
+      route: `${updatedOrigin}-${updatedDestination}`
+    }));
+  };
+
   return (
-    <div className="space-y-6">
-      <Card className="border-border/50">
-        <CardHeader>
-          <CardTitle>Predicción de Comidas por Categoría</CardTitle>
-          <CardDescription>
-            Ingresa los datos del vuelo para obtener predicciones detalladas por categoría de producto
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Flight Identifier Section */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-muted-foreground">Identificación del Vuelo</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="flight_key">Clave del Vuelo</Label>
+    <div className="space-y-8 max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          {/* eslint-disable-next-line react/jsx-key */}
+          <h1 className="text-3xl font-bold" style={{ color: '#010165' }}>
+            Predicción Inteligente
+          </h1>
+        </div>
+        <p className="text-slate-600 max-w-2xl">
+          Obtén predicciones precisas de consumo por categoría de producto para optimizar tu inventario
+        </p>
+      </div>
+
+      {/* Main Form Card */}
+      <Card className="border-slate-200 shadow-sm">
+        <CardContent className="pt-8">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Step 1: Essential Flight Information */}
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-lg font-semibold mb-1" style={{ color: '#010165' }}>Información del Vuelo</h2>
+                <p className="text-sm text-slate-600">Datos esenciales para la predicción</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <Label htmlFor="flight_key" className="text-sm font-medium">
+                    Clave del Vuelo
+                  </Label>
                   <div className="flex gap-2">
                     <Input
                       id="flight_key"
                       value={formData.flight_key}
                       onChange={(e) => handleInputChange('flight_key', e.target.value)}
                       placeholder="ej: AA1234"
+                      className="h-11 rounded-lg"
                       required
                     />
                     <Button
@@ -82,31 +111,55 @@ export function PredictionForm() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleInputChange('flight_key', generateFlightKey())}
+                      className="rounded-lg"
                     >
-                      Generar
+                      <RefreshCw className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="route">Ruta (Origen-Destino)</Label>
-                  <Input
-                    id="route"
-                    value={formData.route}
-                    onChange={(e) => handleInputChange('route', e.target.value)}
-                    placeholder="ej: LIS-MAD"
+                <div className="space-y-3">
+                  <Label htmlFor="origin" className="text-sm font-medium">
+                    Origen
+                  </Label>
+                  <Select
+                    id="origin"
+                    value={origin}
+                    onChange={(e) => handleAirportChange(e.target.value, undefined)}
+                    className="h-11 rounded-lg"
                     required
-                  />
+                  >
+                    {AIRPORTS.map(airport => (
+                      <option key={airport.code} value={airport.code}>
+                        {airport.code} - {airport.name}, {airport.country}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
-              </div>
-            </div>
 
-            {/* Flight Details Section */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-muted-foreground">Detalles del Vuelo</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="passengers">Número de Pasajeros</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="destination" className="text-sm font-medium">
+                    Destino
+                  </Label>
+                  <Select
+                    id="destination"
+                    value={destination}
+                    onChange={(e) => handleAirportChange(undefined, e.target.value)}
+                    className="h-11 rounded-lg"
+                    required
+                  >
+                    {AIRPORTS.map(airport => (
+                      <option key={airport.code} value={airport.code}>
+                        {airport.code} - {airport.name}, {airport.country}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="passengers" className="text-sm font-medium">
+                    Número de Pasajeros
+                  </Label>
                   <Input
                     id="passengers"
                     type="number"
@@ -114,27 +167,34 @@ export function PredictionForm() {
                     max="500"
                     value={formData.passengers}
                     onChange={(e) => handleInputChange('passengers', parseInt(e.target.value))}
+                    className="h-11 rounded-lg"
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="flight_date">Fecha del Vuelo</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="flight_date" className="text-sm font-medium">
+                    Fecha del Vuelo
+                  </Label>
                   <Input
                     id="flight_date"
                     type="date"
                     value={formData.flight_date}
                     onChange={(e) => handleInputChange('flight_date', e.target.value)}
+                    className="h-11 rounded-lg"
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="warehouse">Almacén</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="warehouse" className="text-sm font-medium">
+                    Almacén
+                  </Label>
                   <Select
                     id="warehouse"
                     value={formData.warehouse}
                     onChange={(e) => handleInputChange('warehouse', e.target.value as WarehouseOption)}
+                    className="h-11 rounded-lg"
                     required
                   >
                     {WAREHOUSES.map(wh => (
@@ -142,44 +202,16 @@ export function PredictionForm() {
                     ))}
                   </Select>
                 </div>
-              </div>
-            </div>
 
-            {/* Optional Details Section */}
-            <div className="space-y-4 pt-4 border-t">
-              <h3 className="text-sm font-semibold text-muted-foreground">Detalles Adicionales (Opcional)</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="num_items">Número de Items</Label>
-                  <Input
-                    id="num_items"
-                    type="number"
-                    min="1"
-                    value={formData.num_items || 15}
-                    onChange={(e) => handleInputChange('num_items', parseInt(e.target.value))}
-                  />
-                  <p className="text-xs text-muted-foreground">Default: 15</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="total_demand">Demanda Total Estimada</Label>
-                  <Input
-                    id="total_demand"
-                    type="number"
-                    min="0"
-                    step="0.5"
-                    value={formData.total_demand || 25.5}
-                    onChange={(e) => handleInputChange('total_demand', parseFloat(e.target.value))}
-                  />
-                  <p className="text-xs text-muted-foreground">Default: 25.5</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="day_of_week">Día de la Semana</Label>
+                <div className="space-y-3">
+                  <Label htmlFor="day_of_week" className="text-sm font-medium">
+                    Día de la Semana
+                  </Label>
                   <Select
                     id="day_of_week"
                     value={String(formData.day_of_week || 2)}
                     onChange={(e) => handleInputChange('day_of_week', parseInt(e.target.value))}
+                    className="h-11 rounded-lg"
                   >
                     <option value="0">Lunes</option>
                     <option value="1">Martes</option>
@@ -193,24 +225,107 @@ export function PredictionForm() {
               </div>
             </div>
 
+            {/* Divider */}
+            <div className="border-t border-slate-200" />
+
+            {/* Step 2: Advanced Options */}
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-lg font-semibold mb-1" style={{ color: '#010165' }}>Parámetros Avanzados</h2>
+                <p className="text-sm text-slate-600">Opcional: Ajusta parámetros adicionales</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-3">
+                  <Label htmlFor="num_items" className="text-sm font-medium">
+                    Número de Items
+                  </Label>
+                  <Input
+                    id="num_items"
+                    type="number"
+                    min="1"
+                    value={formData.num_items || 15}
+                    onChange={(e) => handleInputChange('num_items', parseInt(e.target.value))}
+                    className="h-11 rounded-lg"
+                  />
+                  <p className="text-xs text-slate-500">Predeterminado: 15</p>
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="total_demand" className="text-sm font-medium">
+                    Demanda Total Estimada
+                  </Label>
+                  <Input
+                    id="total_demand"
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={formData.total_demand || 25.5}
+                    onChange={(e) => handleInputChange('total_demand', parseFloat(e.target.value))}
+                    className="h-11 rounded-lg"
+                  />
+                  <p className="text-xs text-slate-500">Predeterminado: 25.5</p>
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="num_categories" className="text-sm font-medium">
+                    Número de Categorías
+                  </Label>
+                  <Input
+                    id="num_categories"
+                    type="number"
+                    min="1"
+                    value={formData.num_categories || 6}
+                    onChange={(e) => handleInputChange('num_categories', parseInt(e.target.value))}
+                    className="h-11 rounded-lg"
+                  />
+                  <p className="text-xs text-slate-500">Predeterminado: 6</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Error Alert */}
             {error && (
               <div
-                className="p-4 bg-destructive/10 border border-destructive/50 rounded-lg text-destructive text-sm flex items-start gap-2"
+                className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-start gap-3"
                 role="alert"
                 aria-live="polite"
               >
-                <AlertTriangle className="size-4 mt-0.5 shrink-0" />
-                <span>{error}</span>
+                <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium">Error en la predicción</p>
+                  <p className="text-sm mt-1">{error}</p>
+                </div>
               </div>
             )}
 
-            <Button type="submit" disabled={loading} className="w-full" size="lg">
-              {loading ? '⏳ Calculando predicciones...' : '🚀 Predecir por Categoría'}
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 rounded-lg font-semibold text-base transition-all"
+              style={{
+                backgroundColor: loading ? '#010165cc' : '#010165',
+                color: 'white'
+              }}
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <span className="animate-spin">⏳</span>
+                  Calculando predicciones...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  Generar Predicción
+                </span>
+              )}
             </Button>
           </form>
         </CardContent>
       </Card>
 
+      {/* Results Section */}
       {result && <PredictionResults result={result} />}
     </div>
   )
@@ -225,122 +340,118 @@ function PredictionResults({ result }: PredictionResultsProps) {
   const totalRecommended = Object.values(result.prediction_by_product)
     .reduce((sum, pred) => sum + (pred.recommended_qty || 0), 0);
 
+  const avgAccuracy = (Object.values(result.prediction_by_product)
+    .reduce((sum, pred) => sum + (pred.model_accuracy || 0), 0) / Object.keys(result.prediction_by_product).length).toFixed(1);
+
+  const avgR2 = (Object.values(result.prediction_by_product)
+    .reduce((sum, pred) => sum + (pred.model_r2 || 0), 0) / Object.keys(result.prediction_by_product).length * 100).toFixed(1);
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl">Resultados de Predicción</CardTitle>
-              <CardDescription className="mt-2">
-                Vuelo: <span className="font-mono font-semibold">{result.flight_key}</span>
-                {' '} | Generado: {new Date(result.timestamp).toLocaleString('es-MX')}
-              </CardDescription>
-            </div>
-            <Badge className="bg-green-500 hover:bg-green-600 text-white text-base px-4 py-2">
-              ✓ Completado
-            </Badge>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
-          <p className="text-sm text-blue-700 dark:text-blue-300 font-semibold">Total Recomendado</p>
-          <p className="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-2">
-            {totalRecommended}
+    <div className="space-y-8">
+      {/* Success Header */}
+      <div className="flex items-start gap-4">
+        {/* eslint-disable-next-line react/jsx-key */}
+        <div>
+          <h2 className="text-2xl font-bold" style={{ color: '#010165' }}>Predicción Completada</h2>
+          <p className="text-slate-600 mt-1">
+            Vuelo <span className="font-semibold">{result.flight_key}</span> • {new Date(result.timestamp).toLocaleDateString('es-MX')}
           </p>
-          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">unidades a preparar</p>
-        </div>
-
-        <div className="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg border border-green-200 dark:border-green-800">
-          <p className="text-sm text-green-700 dark:text-green-300 font-semibold">Precisión Promedio</p>
-          <p className="text-3xl font-bold text-green-900 dark:text-green-100 mt-2">
-            {(Object.values(result.prediction_by_product)
-              .reduce((sum, pred) => sum + (pred.model_accuracy || 0), 0) / Object.keys(result.prediction_by_product).length).toFixed(1)}%
-          </p>
-          <p className="text-xs text-green-600 dark:text-green-400 mt-1">accuracy promedio</p>
-        </div>
-
-        <div className="p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg border border-purple-200 dark:border-purple-800">
-          <p className="text-sm text-purple-700 dark:text-purple-300 font-semibold">R² Promedio</p>
-          <p className="text-3xl font-bold text-purple-900 dark:text-purple-100 mt-2">
-            {(Object.values(result.prediction_by_product)
-              .reduce((sum, pred) => sum + (pred.model_r2 || 0), 0) / Object.keys(result.prediction_by_product).length * 100).toFixed(1)}%
-          </p>
-          <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">varianza explicada</p>
         </div>
       </div>
 
+      {/* Key Metrics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <Card className="border-slate-200 shadow-sm">
+          <CardContent className="pt-6">
+            <p className="text-sm text-slate-600 font-medium mb-2">Total a Preparar</p>
+            <p className="text-4xl font-bold" style={{ color: '#010165' }}>
+              {totalRecommended}
+            </p>
+            <p className="text-xs text-slate-500 mt-2">unidades recomendadas</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200 shadow-sm">
+          <CardContent className="pt-6">
+            <p className="text-sm text-slate-600 font-medium mb-2">Precisión Promedio</p>
+            <p className="text-4xl font-bold" style={{ color: '#010165' }}>
+              {avgAccuracy}%
+            </p>
+            <p className="text-xs text-slate-500 mt-2">dentro del 5% de error</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200 shadow-sm">
+          <CardContent className="pt-6">
+            <p className="text-sm text-slate-600 font-medium mb-2">Varianza Explicada</p>
+            <p className="text-4xl font-bold" style={{ color: '#010165' }}>
+              {avgR2}%
+            </p>
+            <p className="text-xs text-slate-500 mt-2">calidad del modelo (R²)</p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Category Predictions Grid */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Predicciones por Categoría</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="space-y-5">
+        <h3 className="text-lg font-semibold" style={{ color: '#010165' }}>Predicciones por Categoría</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {Object.entries(result.prediction_by_product).map(([key, pred]) => {
             const categoryName = pred.product as ProductCategory;
-            const performance = MODEL_PERFORMANCE[categoryName as ProductCategory];
 
-            // Determine color based on risk
-            const riskColors = {
-              'VERY_LOW': 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800',
-              'LOW': 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800',
-              'MEDIUM': 'bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800',
-              'HIGH': 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800',
+            // Risk level styling - clean solid colors for SaaS aesthetic
+            const riskConfig = {
+              'VERY_LOW': { borderColor: 'border-emerald-200', textColor: 'text-emerald-700', dotColor: 'bg-emerald-500', label: 'Bajo' },
+              'LOW': { borderColor: 'border-blue-200', textColor: 'text-blue-700', dotColor: 'bg-blue-500', label: 'Bajo' },
+              'MEDIUM': { borderColor: 'border-amber-200', textColor: 'text-amber-700', dotColor: 'bg-amber-500', label: 'Medio' },
+              'HIGH': { borderColor: 'border-red-200', textColor: 'text-red-700', dotColor: 'bg-red-500', label: 'Alto' },
             };
 
-            const riskBadgeColors = {
-              'VERY_LOW': 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
-              'LOW': 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200',
-              'MEDIUM': 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200',
-              'HIGH': 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200',
-            };
+            const config = riskConfig[pred.stockout_category];
 
             return (
-              <Card key={key} className={`${riskColors[pred.stockout_category]} border`}>
+              <Card key={key} className={`bg-white ${config.borderColor} border-2 transition-all hover:shadow-md`}>
                 <CardContent className="pt-6">
                   <div className="space-y-4">
                     {/* Category Header */}
-                    <div className="flex items-start justify-between">
-                      <div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
                         <h4 className="font-semibold text-base">{categoryName}</h4>
-                        <p className="text-2xl font-bold mt-2">
-                          {pred.recommended_qty} unidades
+                        <p className="text-3xl font-bold mt-1" style={{ color: '#010165' }}>
+                          {pred.recommended_qty}
                         </p>
+                        <p className="text-xs text-slate-600 mt-1">unidades</p>
                       </div>
-                      <Badge className={`${riskBadgeColors[pred.stockout_category]}`}>
-                        {pred.stockout_category}
-                      </Badge>
-                    </div>
-
-                    {/* Confidence Interval */}
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground font-semibold">Rango de Confianza (90%)</p>
-                      <div className="bg-background/50 rounded px-3 py-2 border">
-                        <p className="font-mono text-sm">
-                          {Math.round(pred.confidence_lower)} – {Math.round(pred.confidence_upper)} unidades
-                        </p>
+                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border ${config.borderColor}`}>
+                        <div className={`w-2.5 h-2.5 rounded-full ${config.dotColor}`} />
+                        <span className={`text-xs font-semibold ${config.textColor}`}>
+                          {config.label}
+                        </span>
                       </div>
                     </div>
 
-                    {/* Model Metrics */}
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t">
+                    {/* Divider */}
+                    <div className="border-t border-slate-200" />
+
+                    {/* Metrics Grid */}
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <p className="text-xs text-muted-foreground">R²</p>
-                        <p className="font-bold text-sm">{(pred.model_r2 * 100).toFixed(1)}%</p>
+                        <p className="text-xs text-slate-600 font-medium">Rango 90%</p>
+                        <p className="text-sm font-mono font-semibold mt-1">
+                          {Math.round(pred.confidence_lower)}–{Math.round(pred.confidence_upper)}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">Accuracy</p>
-                        <p className="font-bold text-sm">{pred.model_accuracy.toFixed(1)}%</p>
+                        <p className="text-xs text-slate-600 font-medium">Accuracy</p>
+                        <p className="text-sm font-semibold mt-1" style={{ color: '#010165' }}>{pred.model_accuracy.toFixed(1)}%</p>
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">MAE</p>
-                        <p className="font-bold text-sm">±{pred.model_mae.toFixed(2)}</p>
+                        <p className="text-xs text-slate-600 font-medium">R²</p>
+                        <p className="text-sm font-semibold mt-1" style={{ color: '#010165' }}>{(pred.model_r2 * 100).toFixed(1)}%</p>
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">Riesgo</p>
-                        <p className="font-bold text-sm">{(pred.stockout_risk * 100).toFixed(1)}%</p>
+                        <p className="text-xs text-slate-600 font-medium">MAE</p>
+                        <p className="text-sm font-semibold mt-1" style={{ color: '#010165' }}>±{pred.model_mae.toFixed(2)}</p>
                       </div>
                     </div>
                   </div>
@@ -353,49 +464,37 @@ function PredictionResults({ result }: PredictionResultsProps) {
 
       {/* Business Metrics */}
       {result.business_metrics && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Métricas de Negocio</CardTitle>
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg" style={{ color: '#010165' }}>Impacto Económico</CardTitle>
+            <CardDescription>Análisis de desperdicio y ahorro potencial</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-xs text-muted-foreground font-semibold">Unidades Esperadas de Desperdicio</p>
-                <p className="text-2xl font-bold mt-2">{result.business_metrics.expected_waste_units?.toFixed(1) || 'N/A'}</p>
+              <div className="p-4 rounded-lg bg-slate-50">
+                <p className="text-xs text-slate-600 font-medium mb-2">Desperdicio Esperado</p>
+                <p className="text-2xl font-bold">{result.business_metrics.expected_waste_units?.toFixed(1) || '—'}</p>
+                <p className="text-xs text-slate-500 mt-1">unidades</p>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground font-semibold">Costo de Desperdicio Estimado</p>
-                <p className="text-2xl font-bold mt-2">${result.business_metrics.expected_waste_cost?.toFixed(2) || 'N/A'}</p>
+              <div className="p-4 rounded-lg bg-slate-50">
+                <p className="text-xs text-slate-600 font-medium mb-2">Costo de Desperdicio</p>
+                <p className="text-2xl font-bold">${result.business_metrics.expected_waste_cost?.toFixed(0) || '—'}</p>
+                <p className="text-xs text-slate-500 mt-1">estimado</p>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground font-semibold">Mejora Eficiencia vs Total</p>
-                <p className="text-2xl font-bold mt-2 text-green-600">{result.business_metrics.efficiency_improvement?.toFixed(1) || 'N/A'}%</p>
+              <div className="p-4 rounded-lg bg-slate-50">
+                <p className="text-xs text-slate-600 font-medium mb-2">Mejora de Eficiencia</p>
+                <p className="text-2xl font-bold" style={{ color: '#010165' }}>{result.business_metrics.efficiency_improvement?.toFixed(1) || '—'}%</p>
+                <p className="text-xs text-slate-500 mt-1">vs método total</p>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground font-semibold">Ahorros Estimados</p>
-                <p className="text-2xl font-bold mt-2 text-green-600">${result.business_metrics.estimated_savings?.toFixed(2) || 'N/A'}</p>
+              <div className="p-4 rounded-lg bg-slate-50">
+                <p className="text-xs text-slate-600 font-medium mb-2">Ahorros Estimados</p>
+                <p className="text-2xl font-bold" style={{ color: '#010165' }}>${result.business_metrics.estimated_savings?.toFixed(0) || '—'}</p>
+                <p className="text-xs text-slate-500 mt-1">potenciales</p>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
-
-      {/* Info Note */}
-      <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-800">
-        <CardContent className="pt-6">
-          <p className="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-3">
-            ℹ️ Cómo Usar Estos Resultados:
-          </p>
-          <ul className="text-xs text-amber-800 dark:text-amber-300 space-y-2 list-disc list-inside">
-            <li><strong>Cantidad Recomendada:</strong> Número exacto a preparar por categoría</li>
-            <li><strong>Rango de Confianza:</strong> En el 90% de casos, la demanda caerá en este rango</li>
-            <li><strong>R²:</strong> Porcentaje de varianza explicada por el modelo (mayor = mejor)</li>
-            <li><strong>Accuracy (±5%):</strong> % de predicciones dentro del 5% de error</li>
-            <li><strong>Riesgo Stockout:</strong> Probabilidad de quedarse sin inventario</li>
-            <li><strong>MAE:</strong> Error absoluto medio (desviación esperada)</li>
-          </ul>
-        </CardContent>
-      </Card>
     </div>
   );
 }
