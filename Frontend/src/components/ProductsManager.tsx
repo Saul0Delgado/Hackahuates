@@ -7,7 +7,7 @@ import { Button } from "./ui/button"
 import { Select } from "./ui/select"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
-import { Camera, Upload, X, Package, Lightbulb, TrendingUp, AlertTriangle, Check, Calendar } from "lucide-react"
+import { Camera, Upload, X, Package, Lightbulb, TrendingUp, AlertTriangle, Check, Calendar,Trash2 } from "lucide-react"
 import { WebcamModal } from "./WebcamModal"
 
 interface Product {
@@ -15,6 +15,14 @@ interface Product {
   name: string
   image?: string
   expirationDate?: string
+}
+
+interface AssignedProduct {
+  id: string; // ID único para la instancia
+  productId: string;
+  productName: string;
+  image: string;
+  expirationDate?: string;
 }
 
 const PRODUCTS: Product[] = [
@@ -31,6 +39,7 @@ const API_URL = "http://localhost:5000/api"
 
 export function ProductsManager() {
   const [products, setProducts] = useState<Product[]>(PRODUCTS)
+  const [assignedProducts, setAssignedProducts] = useState<AssignedProduct[]>([])
   const [tempImage, setTempImage] = useState<string | null>(null)
   const [selectedProductId, setSelectedProductId] = useState<string>("")
   const [expirationDate, setExpirationDate] = useState<string>("")
@@ -92,24 +101,36 @@ export function ProductsManager() {
       return
     }
 
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === selectedProductId ? { ...p, image: tempImage, expirationDate: expirationDate || undefined } : p,
-      ),
-    )
+    // 1. Encontrar el nombre del producto seleccionado
+    const selectedProduct = products.find(p => p.id === selectedProductId)
+    if (!selectedProduct) {
+      alert("Producto no encontrado")
+      return
+    }
 
-    // Resetear estados
+    // 2. Crear el nuevo objeto de producto asignado
+    const newAssignedProduct: AssignedProduct = {
+      id: `prod-${Date.now()}`, // ID único para la fila de la tabla
+      productId: selectedProductId,
+      productName: selectedProduct.name,
+      image: tempImage,
+      expirationDate: expirationDate || undefined,
+    }
+
+    // 3. Añadir el nuevo producto a la lista de la tabla (al principio)
+    setAssignedProducts(prev => [newAssignedProduct, ...prev])
+
+    // 4. Resetear estados del formulario
     setTempImage(null)
     setSelectedProductId("")
     setExpirationDate("")
     setDetectionError(null)
   }
 
-  /*const removeImage = (productId: string) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === productId ? { ...p, image: undefined, expirationDate: undefined } : p)),
-    )
-  }*/
+  // NUEVO: Función para eliminar un producto de la tabla
+  const removeAssignedProduct = (idToRemove: string) => {
+    setAssignedProducts(prev => prev.filter(p => p.id !== idToRemove))
+  }
 
   const handleWebcamCapture = async (dataUrl: string) => {
     setTempImage(dataUrl)
@@ -311,6 +332,66 @@ export function ProductsManager() {
           </CardContent>
         </Card>
       </section>
+      
+      {assignedProducts.length > 0 && (
+        <section aria-labelledby="assigned-products-section">
+          <div className="flex items-center gap-3 mb-4">
+            <Package className="h-5 w-5 text-primary" aria-hidden="true" />
+            <h3 id="assigned-products-section" className="text-lg font-semibold text-foreground">
+              Productos Asignados
+            </h3>
+          </div>
+          <Card>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted">
+                    <tr className="border-b">
+                      <th className="p-4 text-left font-medium text-muted-foreground">Producto</th>
+                      <th className="p-4 text-left font-medium text-muted-foreground">Imagen</th>
+                      <th className="p-4 text-left font-medium text-muted-foreground">Fecha de Caducidad</th>
+                      <th className="p-4 text-left font-medium text-muted-foreground">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {assignedProducts.map((product) => (
+                      <tr key={product.id} className="border-b last:border-b-0">
+                        <td className="p-4 align-top font-medium">{product.productName}</td>
+                        <td className="p-4 align-top">
+                          <img
+                            src={product.image}
+                            alt={product.productName}
+                            className="h-16 w-16 object-cover rounded-md border"
+                          />
+                        </td>
+                        <td className="p-4 align-top">
+                          {product.expirationDate ? (
+                            <span>{product.expirationDate}</span>
+                          ) : (
+                            <span className="text-muted-foreground">N/A</span>
+                          )}
+                        </td>
+                        <td className="p-4 align-top">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => removeAssignedProduct(product.id)}
+                            aria-label="Eliminar producto"
+                            className="gap-2"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Quitar
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      )}
 
       {/* Recommendations Section */}
       <section aria-labelledby="recommendations-section">
