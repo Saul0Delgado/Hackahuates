@@ -26,6 +26,9 @@ const PRODUCTS: Product[] = [
   { id: "6", name: "Comida Fresca" },
 ]
 
+const API_URL = "http://localhost:5000/api"
+
+
 export function ProductsManager() {
   const [products, setProducts] = useState<Product[]>(PRODUCTS)
   const [tempImage, setTempImage] = useState<string | null>(null)
@@ -34,6 +37,8 @@ export function ProductsManager() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const cameraInputRef = useRef<HTMLInputElement | null>(null)
   const [isWebcamOpen, setIsWebcamOpen] = useState(false)
+  const [isDetectingDate, setIsDetectingDate] = useState(false)
+  const [detectionError, setDetectionError] = useState<string | null>(null)
 
   const handleTempImageUpload = (file: File) => {
     const reader = new FileReader()
@@ -43,10 +48,41 @@ export function ProductsManager() {
     reader.readAsDataURL(file)
   }
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       handleTempImageUpload(file)
+      setDetectionError(null)
+      setExpirationDate("") // Limpia la fecha anterior
+      setIsDetectingDate(true)
+
+      const formData = new FormData()
+      formData.append('image', file)
+
+      try {
+        const response = await fetch(`${API_URL}/extraction/extract_date_from_image`, {
+          method: "POST",
+          body: formData,
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Error del servidor al detectar fecha")
+        }
+
+        const data = await response.json()
+
+        if (data.success && data.date) {
+          setExpirationDate(data.date) // ¡Establece la fecha encontrada!
+        } else {
+          throw new Error(data.error || "No se pudo encontrar una fecha en la imagen")
+        }
+      } catch (error) {
+        console.error("Error al detectar fecha:", error)
+        setDetectionError(error instanceof Error ? error.message : "Error desconocido")
+      } finally {
+        setIsDetectingDate(false)
+      }
     }
   }
 
@@ -66,6 +102,7 @@ export function ProductsManager() {
     setTempImage(null)
     setSelectedProductId("")
     setExpirationDate("")
+    setDetectionError(null)
   }
 
   /*const removeImage = (productId: string) => {
@@ -74,10 +111,48 @@ export function ProductsManager() {
     )
   }*/
 
-  const handleWebcamCapture = (dataUrl: string) => {
+  const handleWebcamCapture = async (dataUrl: string) => {
     setTempImage(dataUrl)
     setIsWebcamOpen(false)
+
+    setDetectionError(null)
+    setExpirationDate("") 
+    setIsDetectingDate(true)
+
+    try {
+      // 1. Quitar el prefijo 'data:image/jpeg;base64,'
+      const base64Image = dataUrl.split('base64,')[1]
+
+      const response = await fetch(`${API_URL}/extraction/extract_date`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          base_64_image_content: base64Image,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Error del servidor al detectar fecha")
+      }
+
+      const data = await response.json()
+
+      if (data.success && data.date) {
+        setExpirationDate(data.date) // ¡Establece la fecha encontrada!
+      } else {
+        throw new Error(data.error || "No se pudo encontrar una fecha en la imagen")
+      }
+    } catch (error) {
+      console.error("Error al detectar fecha:", error)
+      setDetectionError(error instanceof Error ? error.message : "Error desconocido")
+    } finally {
+      setIsDetectingDate(false)
+    }
   }
+  
 
   const handleCameraClick = () => {
     // Detectar si es dispositivo móvil
@@ -173,6 +248,20 @@ export function ProductsManager() {
               </Button>
             </div>
 
+            {isDetectingDate && (
+              <div className="flex items-center justify-center gap-2 text-primary pt-4">
+                <Lightbulb className="h-4 w-4 animate-pulse" aria-hidden="true" />
+                <p className="text-sm">Detectando fecha de caducidad...</p>
+              </div>
+            )}
+
+            {detectionError && (
+              <div className="flex items-center justify-center gap-2 text-destructive pt-4">
+                <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+                <p className="text-sm font-medium">{detectionError}</p>
+              </div>
+            )}
+
             {/* Formulario de asignación */}
             <div className="grid gap-4 max-w-md mx-auto pt-4 border-t">
               <div className="space-y-2">
@@ -205,7 +294,7 @@ export function ProductsManager() {
                   aria-label="Fecha de caducidad del producto"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Ingresa manualmente si hay problemas con la detección automática
+                  {isDetectingDate ? "Intentando detectar..." : "Ingresa manualmente si la detección falla"}
                 </p>
               </div>
 

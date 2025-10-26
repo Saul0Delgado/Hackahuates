@@ -1,11 +1,15 @@
 {
   "patterns": [
     "\\bde\\s*[\\/\\-\\.\\s]\\s*caducidad\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\b",
-    "\\b(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|SEPT|OCT|NOV|DEC)\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\b"
+    "\\b(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|SEPT|OCT|NOV|DEC)\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\b",
+    "\\b(\\d{1,2})\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\s*[\\/\\-\\.\\s]\\s*(\\d{4})\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\s*[\\/\\-\\.\\s]\\s*(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|SEPT|OCT|NOV|DEC)\\b",
+    "\\bchk\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\b"
   ],
   "usage": {
     "\\bde\\s*[\\/\\-\\.\\s]\\s*caducidad\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\b": 1,
-    "\\b(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|SEPT|OCT|NOV|DEC)\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\b": 1
+    "\\b(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|SEPT|OCT|NOV|DEC)\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\b": 6,
+    "\\b(\\d{1,2})\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\s*[\\/\\-\\.\\s]\\s*(\\d{4})\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\s*[\\/\\-\\.\\s]\\s*(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|SEPT|OCT|NOV|DEC)\\b": 2,
+    "\\bchk\\s*[\\/\\-\\.\\s]\\s*(\\d{1,2})\\b": 1
   },
-  "last_updated": "2025-10-25T16:27:09.988727"
+  "last_updated": "2025-10-26T01:42:34.252899"
 }
