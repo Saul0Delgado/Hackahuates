@@ -4,13 +4,14 @@ import { useState, useEffect } from "react"
 import { PredictionForm } from "./components/PredictionForm"
 import { ModelMetricsDashboard } from "./components/ModelMetrics"
 import { ProductsManager } from "./components/ProductsManager"
+import { VoiceAssistant } from "./components/VoiceAssistant"
 import { Button } from "./components/ui/button"
 import { Badge } from "./components/ui/badge"
 import { Card, CardContent } from "./components/ui/card"
 import { apiService } from "./services/api"
-import { Activity, BarChart3, RefreshCw, AlertCircle, Package } from "lucide-react"
+import { Activity, BarChart3, RefreshCw, AlertCircle, Package, Mic } from "lucide-react"
 
-type View = "prediction" | "metrics" | "products"
+type View = "prediction" | "metrics" | "products" | "voice"
 
 export default function App() {
   const [view, setView] = useState<View>("prediction")
@@ -61,7 +62,7 @@ export default function App() {
                     : "API Desconectada"}
               </Badge>
             </div>
-            <nav className="flex gap-2" role="navigation" aria-label="Navegación principal">
+            <nav className="flex gap-2 flex-wrap" role="navigation" aria-label="Navegación principal">
               <Button
                 variant={view === "prediction" ? "default" : "outline"}
                 onClick={() => setView("prediction")}
@@ -91,6 +92,16 @@ export default function App() {
               >
                 <Package className="h-4 w-4" aria-hidden="true" />
                 <span>Productos</span>
+              </Button>
+              <Button
+                variant={view === "voice" ? "default" : "outline"}
+                onClick={() => setView("voice")}
+                className="gap-2"
+                aria-pressed={view === "voice"}
+                aria-label="Asistente de voz para productividad"
+              >
+                <Mic className="h-4 w-4" aria-hidden="true" />
+                <span>Asistente de Voz</span>
               </Button>
             </nav>
           </div>
@@ -136,8 +147,10 @@ export default function App() {
             <PredictionForm />
           ) : view === "metrics" ? (
             <ModelMetricsDashboard />
-          ) : (
+          ) : view === "products" ? (
             <ProductsManager />
+          ) : (
+            <VoiceAssistant />
           )}
         </div>
       </main>

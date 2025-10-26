@@ -44,6 +44,14 @@ from enum import Enum
 from pathlib import Path
 from scipy.stats import norm
 
+# Import Voice Assistant router
+try:
+    from voice_assistant_service import router as voice_assistant_router
+    VOICE_ASSISTANT_AVAILABLE = True
+except ImportError:
+    VOICE_ASSISTANT_AVAILABLE = False
+    print("Warning: voice_assistant_service not available. Voice assistant endpoints will not be registered.")
+
 # ============================================================================
 # CONFIGURACIÓN
 # ============================================================================
@@ -105,6 +113,10 @@ app.add_middleware(
     allow_methods=["*"],  # Permitir GET, POST, OPTIONS, etc.
     allow_headers=["*"],  # Permitir todos los headers
 )
+
+# Include Voice Assistant router
+if VOICE_ASSISTANT_AVAILABLE:
+    app.include_router(voice_assistant_router)
 
 # Cargar modelos producto-level (una sola vez al iniciar)
 # Buscar en ruta absoluta desde script actual

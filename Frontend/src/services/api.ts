@@ -9,6 +9,30 @@ import type {
   HealthResponse,
 } from "../types/api"
 
+// Voice Assistant types
+export interface DrawerContext {
+  drawer_id: string;
+  flight_type: string;
+  category: string;
+  total_items: number;
+  unique_item_types: number;
+  item_list: string;
+  airline: string;
+  contract_id: string;
+}
+
+export interface VoiceQuery {
+  question: string;
+  drawer_context: DrawerContext;
+}
+
+export interface VoiceResponse {
+  answer: string;
+  confidence: number;
+  drawer_id?: string;
+  suggestions?: string[];
+}
+
 const API_BASE_URL = "http://localhost:8000"
 
 class APIService {
@@ -105,6 +129,19 @@ class APIService {
       method: "POST",
       body: JSON.stringify({ model_name: modelName }),
     })
+  }
+
+  // Voice Assistant - Productivity Pilar
+  async voiceAssistantQuery(query: VoiceQuery): Promise<VoiceResponse> {
+    return this.request<VoiceResponse>("/api/v1/productivity/voice-assistant", {
+      method: "POST",
+      body: JSON.stringify(query),
+    })
+  }
+
+  // Get drawer information
+  async getDrawerInfo(drawerId: string): Promise<DrawerContext> {
+    return this.request<DrawerContext>(`/api/v1/productivity/drawer/${drawerId}`)
   }
 }
 
