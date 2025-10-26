@@ -11,23 +11,68 @@ from pydantic import BaseModel, Field
 from typing import Optional, Dict
 import os
 
+# Cargar variables de entorno desde .env
+try:
+    from dotenv import load_dotenv
+    dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+    load_dotenv(dotenv_path)
+    print(f"[INIT] ✓ Loaded .env file from: {dotenv_path}")
+except ImportError:
+    print("[INIT] ⚠ python-dotenv not installed. Install with: pip install python-dotenv")
+except Exception as e:
+    print(f"[INIT] ⚠ Could not load .env file: {str(e)}")
+
 # Importar Gemini (necesita: pip install google-generativeai)
 try:
     import google.generativeai as genai
     GEMINI_AVAILABLE = True
+    print("[INIT] ✓ Gemini library imported successfully")
 except ImportError:
     GEMINI_AVAILABLE = False
-    print("Warning: google-generativeai not installed. Voice assistant will use fallback responses.")
+    print("[INIT] ✗ Gemini library NOT available - will use fallback responses")
 
 router = APIRouter(prefix="/api/v1/productivity", tags=["productivity"])
 
 # Configurar Gemini API
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
+if not GEMINI_API_KEY:
+    print("[INIT] ✗ GEMINI_API_KEY not found in environment variables or .env file")
+    print("[INIT] ⚠ Make sure you have GEMINI_API_KEY in your .env file or system environment")
+else:
+    print(f"[INIT] ✓ GEMINI_API_KEY loaded successfully (length: {len(GEMINI_API_KEY)} chars)")
+    print(f"[INIT] ✓ API Key starts with: {GEMINI_API_KEY[:10]}...")
+
 if GEMINI_AVAILABLE and GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-pro')
+    try:
+        genai.configure(api_key=GEMINI_API_KEY)
+
+        # Intentar usar gemini-2.0-flash primero (más nuevo)
+        try:
+            model = genai.GenerativeModel('gemini-2.0-flash')
+            print("[INIT] ✓ Gemini model initialized successfully (gemini-2.0-flash)")
+        except Exception as e1:
+            print(f"[INIT] ⚠ gemini-2.0-flash not available: {str(e1)}")
+            try:
+                model = genai.GenerativeModel('gemini-1.5-flash')
+                print("[INIT] ✓ Gemini model initialized successfully (gemini-1.5-flash)")
+            except Exception as e2:
+                print(f"[INIT] ⚠ gemini-1.5-flash not available: {str(e2)}")
+                model = genai.GenerativeModel('gemini-pro')
+                print("[INIT] ✓ Gemini model initialized successfully (gemini-pro)")
+
+        print("[INIT] ✓✓✓ VOICE ASSISTANT READY - All systems operational ✓✓✓")
+    except Exception as e:
+        print(f"[INIT] ✗ Failed to initialize Gemini model: {str(e)}")
+        model = None
 else:
     model = None
+    if not GEMINI_AVAILABLE:
+        print(f"[INIT] ✗ Gemini model NOT initialized - Reason: Gemini library not available")
+    elif not GEMINI_API_KEY:
+        print(f"[INIT] ✗ Gemini model NOT initialized - Reason: GEMINI_API_KEY not set")
+    else:
+        print(f"[INIT] ✗ Gemini model NOT initialized - Reason: Unknown")
 
 # ============================================================================
 # MODELS
@@ -324,68 +369,70 @@ def build_system_context(drawer_context: DrawerContext) -> str:
             meta = ITEM_METADATA[item_code]
             item_details.append(
                 f"- {item_code}: {meta['name']} ({meta['weight']}, "
-                f"{'Fragile' if meta['fragile'] else 'Sturdy'}, "
-                f"Used in {meta['frequency']} of drawers)"
+                f"{'Frágil' if meta['fragile'] else 'Resistente'}, "
+                f"Usado en {meta['frequency']} de gavetas)"
             )
 
-    item_metadata_text = "\n".join(item_details) if item_details else "Standard items"
+    item_metadata_text = "\n".join(item_details) if item_details else "Items estándar"
 
     # Calcular complexity score
     complexity_score = (drawer_context.unique_item_types / drawer_context.total_items) * 100
     if complexity_score < 30:
-        complexity_level = "LOW (3-4 min estimated)"
+        complexity_level = "BAJA (3-4 min estimados)"
     elif complexity_score < 60:
-        complexity_level = "MEDIUM (5-6 min estimated)"
+        complexity_level = "MEDIA (5-6 min estimados)"
     else:
-        complexity_level = "HIGH (7+ min estimated)"
+        complexity_level = "ALTA (7+ min estimados)"
 
-    system_prompt = f"""You are an expert AI assistant for GateGroup airline catering operations.
-You help workers assemble meal service drawers (trolleys) efficiently and correctly.
-You provide CONCISE, ACTIONABLE answers that workers can understand while working hands-free.
+    system_prompt = f"""Eres un asistente de IA experto en operaciones de catering aéreo de GateGroup.
+Ayudas a los operarios a armar gavetas de servicio de comidas (carritos) de manera eficiente y correcta.
+Proporcionas respuestas CONCISAS y ACCIONABLES que los operarios puedan entender trabajando con las manos libres.
+RESPONDE SIEMPRE EN ESPAÑOL. No mezcles inglés en tus respuestas.
 
-CURRENT WORK CONTEXT:
-====================
-Drawer ID: {drawer_context.drawer_id}
-Flight Type: {drawer_context.flight_type}
-Category: {drawer_context.category}
+CONTEXTO ACTUAL DE TRABAJO:
+===========================
+ID Gaveta: {drawer_context.drawer_id}
+Tipo Vuelo: {drawer_context.flight_type}
+Categoría: {drawer_context.category}
 Total Items: {drawer_context.total_items}
-Unique Item Types: {drawer_context.unique_item_types}
-Complexity Score: {complexity_score:.1f} ({complexity_level})
-Item List: {drawer_context.item_list}
-Airline: {drawer_context.airline}
-Contract: {drawer_context.contract_id}
+Tipos Únicos: {drawer_context.unique_item_types}
+Nivel Complejidad: {complexity_score:.1f} ({complexity_level})
+Lista Items: {drawer_context.item_list}
+Aerolínea: {drawer_context.airline}
+Contrato: {drawer_context.contract_id}
 
 {OPERATIONAL_KNOWLEDGE}
 
 {contract_rules}
 
-ITEMS IN THIS DRAWER:
-=====================
+ITEMS EN ESTA GAVETA:
+====================
 {item_metadata_text}
 
-RESPONSE GUIDELINES (CRITICAL):
-================================
-1. Keep answers CONCISE: Maximum 2-3 sentences
-2. Start with ACTION: "Place in...", "Yes, you can...", "No, discard..."
-3. Use SPECIFIC terms: Item codes (CUTL01), positions (bottom left, top right)
-4. Mention CONTRACT RULES when relevant
-5. Provide brief REASONING (why)
-6. For YES/NO questions: Start with YES or NO clearly
-7. Use CONVERSATIONAL tone (the worker hears this spoken aloud)
-8. NEVER use bullet points or formatting (this is spoken, not written)
-9. Focus on IMMEDIATE ACTIONABLE guidance
+GUÍAS DE RESPUESTA (CRÍTICAS):
+==============================
+1. Respuestas CONCISAS: Máximo 2-3 oraciones
+2. Comienza con ACCIÓN: "Coloca en...", "Sí, puedes...", "No, descarta..."
+3. Usa términos ESPECÍFICOS: Códigos de item (CUTL01), posiciones (abajo izquierda, arriba derecha)
+4. Menciona REGLAS DE CONTRATO cuando sea relevante
+5. Proporciona RAZONAMIENTO breve (por qué)
+6. Para preguntas SÍ/NO: Comienza con SÍ o NO claramente
+7. Usa tono CONVERSACIONAL (el operario escucha esto en voz alta)
+8. NUNCA uses viñetas o formato especial (esto es hablado, no escrito)
+9. Enfócate en orientación ACCIONABLE INMEDIATA
+10. TODO EN ESPAÑOL - Sin excepciones
 
-Examples of good responses:
-- "Place CUTL01 in the top layer, right side, for easy crew access. It's in 45 percent of drawers so keep it accessible."
-- "Yes, for Aeromexico you can reuse that Sprite bottle if it's more than 50 percent full. Make sure total volume meets the 2 Sprite minimum."
-- "No, discard it. The rule is 5 to 7 days before expiration. With only 4 days left it's outside safety margin."
+Ejemplos de buenas respuestas:
+- "Coloca CUTL01 en la capa superior, lado derecho, para acceso fácil de la tripulación. Está en 45 por ciento de gavetas así que mantenlo accesible."
+- "Sí, para Aeromexico puedes reusar esa botella de Sprite si está más del 50 por ciento llena. Asegúrate que el volumen total cumple el mínimo de 2 Sprites."
+- "No, descártala. La regla es 5 a 7 días antes de vencer. Con solo 4 días quedan fuera del margen de seguridad."
 
-Bad responses (avoid):
-- Long explanations
-- Bullet points or lists
-- Technical jargon without context
-- Vague guidance ("somewhere near the front")
-- No clear action
+Respuestas malas (evita):
+- Explicaciones largas
+- Viñetas o listas
+- Jerga técnica sin contexto
+- Orientación vaga ("en algún lugar al frente")
+- Sin acción clara
 """
 
     return system_prompt
@@ -414,8 +461,18 @@ async def voice_assistant(query: VoiceQuery):
         Response: "Sí, para Aeromexico puedes reusar si está más del 50% llena..."
     """
 
+    # Log: Nueva query recibida
+    print(f"\n{'='*70}")
+    print(f"[VOICE ASSISTANT] New query received")
+    print(f"  Question: {query.question}")
+    print(f"  Drawer ID: {query.drawer_context.drawer_id if query.drawer_context else 'None'}")
+    print(f"  GEMINI_AVAILABLE: {GEMINI_AVAILABLE}")
+    print(f"  Model initialized: {model is not None}")
+    print(f"{'='*70}")
+
     # Validar que haya contexto
     if not query.drawer_context:
+        print("[VOICE ASSISTANT] No drawer context provided")
         return VoiceResponse(
             answer="Por favor selecciona un drawer primero para poder ayudarte mejor con información específica.",
             confidence=1.0,
@@ -424,6 +481,8 @@ async def voice_assistant(query: VoiceQuery):
 
     # Si Gemini no está disponible, usar fallback
     if not GEMINI_AVAILABLE or not model:
+        reason = "Gemini library not available" if not GEMINI_AVAILABLE else "Model not initialized"
+        print(f"[FALLBACK TRIGGERED] Reason: {reason}")
         return _fallback_response(query)
 
     try:
@@ -433,16 +492,36 @@ async def voice_assistant(query: VoiceQuery):
         # Construir prompt completo
         full_prompt = f"""{system_context}
 
-Worker question: {query.question}
+Pregunta del operador: {query.question}
 
-Provide a helpful, concise answer (2-3 sentences max) that will be spoken aloud to the worker."""
+IMPORTANTE: Responde SIEMPRE en español. Tu respuesta debe ser:
+- Concisa (máximo 2-3 oraciones)
+- Directa y clara
+- Natural para ser leída en voz alta
+- 100% en español, sin mezclar inglés
+
+Respuesta:"""
+
+        # Log: Antes de llamar a Gemini
+        print(f"[GEMINI CALL] Calling Gemini API...")
+        print(f"[GEMINI CALL] Prompt length: {len(full_prompt)} characters")
+        print(f"[GEMINI CALL] Question: {query.question}")
 
         # Llamar a Gemini
         response = model.generate_content(full_prompt)
         answer = response.text.strip()
 
+        # Log: Respuesta recibida
+        print(f"[GEMINI SUCCESS] Response received successfully")
+        print(f"[GEMINI SUCCESS] Raw answer length: {len(answer)} characters")
+        print(f"[GEMINI SUCCESS] Raw answer: {answer[:150]}..." if len(answer) > 150 else f"[GEMINI SUCCESS] Raw answer: {answer}")
+
         # Limpiar respuesta (remover markdown, bullets, etc.)
         answer = _clean_response_for_speech(answer)
+
+        # Log: Respuesta limpia
+        print(f"[GEMINI SUCCESS] Cleaned answer: {answer[:150]}..." if len(answer) > 150 else f"[GEMINI SUCCESS] Cleaned answer: {answer}")
+        print(f"{'='*70}\n")
 
         return VoiceResponse(
             answer=answer,
@@ -452,9 +531,13 @@ Provide a helpful, concise answer (2-3 sentences max) that will be spoken aloud 
         )
 
     except Exception as e:
-        print(f"Error in voice assistant: {str(e)}")
+        print(f"[ERROR] Exception occurred in voice assistant")
+        print(f"[ERROR] Error type: {type(e).__name__}")
+        print(f"[ERROR] Error message: {str(e)}")
         import traceback
+        print(f"[ERROR] Traceback:")
         traceback.print_exc()
+        print(f"{'='*70}\n")
 
         return VoiceResponse(
             answer="Lo siento, hubo un error procesando tu pregunta. Por favor intenta de nuevo o consulta con tu supervisor.",
@@ -494,10 +577,12 @@ def _fallback_response(query: VoiceQuery) -> VoiceResponse:
     Respuestas fallback cuando Gemini no está disponible
     """
 
+    print(f"[FALLBACK RESPONSE] Processing fallback for: {query.question}")
     question_lower = query.question.lower()
 
     # Respuestas simples basadas en keywords
     if "donde" in question_lower or "pongo" in question_lower:
+        print(f"[FALLBACK KEYWORD MATCH] 'donde/pongo' matched")
         if "cutl" in question_lower:
             return VoiceResponse(
                 answer="Coloca los cubiertos en la capa superior para fácil acceso de la tripulación.",
@@ -512,6 +597,7 @@ def _fallback_response(query: VoiceQuery) -> VoiceResponse:
             )
 
     elif "reusar" in question_lower or "reuso" in question_lower or "botella" in question_lower:
+        print(f"[FALLBACK KEYWORD MATCH] 'reusar/reuso/botella' matched")
         airline = query.drawer_context.airline if query.drawer_context else "Aeromexico"
         if airline == "Delta":
             return VoiceResponse(
@@ -527,6 +613,7 @@ def _fallback_response(query: VoiceQuery) -> VoiceResponse:
             )
 
     elif "rapido" in question_lower or "velocidad" in question_lower:
+        print(f"[FALLBACK KEYWORD MATCH] 'rapido/velocidad' matched")
         return VoiceResponse(
             answer="Pre-organiza los items únicos antes de empezar y usa ambas manos para items simétricos.",
             confidence=0.7,
@@ -534,6 +621,7 @@ def _fallback_response(query: VoiceQuery) -> VoiceResponse:
         )
 
     elif any(word in question_lower for word in ["vence", "expira", "caducidad", "expiration", "expired", "vencido", "vencimiento", "fechas"]):
+        print(f"[FALLBACK KEYWORD MATCH] 'expiration' keywords matched")
         return VoiceResponse(
             answer="Descarta productos con menos de 5 a 7 días antes de la expiración. Es regla de seguridad de la cadena de frío. Nunca agregues al carrito si está vencido o próximo a vencer.",
             confidence=0.85,
@@ -541,6 +629,7 @@ def _fallback_response(query: VoiceQuery) -> VoiceResponse:
         )
 
     elif any(word in question_lower for word in ["agregado", "carrito", "inventory", "stock", "inventario"]):
+        print(f"[FALLBACK KEYWORD MATCH] 'inventory/stock' keywords matched")
         return VoiceResponse(
             answer="Verifica primero la fecha de expiración antes de agregar cualquier producto. Solo agrega items con al menos 5 días de vida útil.",
             confidence=0.8,
@@ -548,6 +637,8 @@ def _fallback_response(query: VoiceQuery) -> VoiceResponse:
         )
 
     # Default fallback
+    print(f"[FALLBACK KEYWORD MATCH] No keywords matched, using default fallback response")
+    print(f"[FALLBACK RESPONSE] Question keywords: {question_lower}")
     return VoiceResponse(
         answer="No tengo suficiente información para responder esa pregunta. Por favor consulta el manual o pregunta a tu supervisor.",
         confidence=0.3,
