@@ -1,6 +1,7 @@
 <a href="https://github.com/Saul0Delgado/Hackahuates">
   <img src="Banner.png" alt="banner" width="100%">
 </a>
+
 # SmartCart AI
 
 **Team Hackahuates**
